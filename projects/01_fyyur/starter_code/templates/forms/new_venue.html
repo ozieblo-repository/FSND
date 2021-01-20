@@ -65,7 +65,6 @@
           {{ form.facebook_link(class_ = 'form-control', placeholder='http://', id=form.facebook_link, autofocus = true) }}
       </div>
       <input type="submit" value="Create Venue" class="btn btn-primary btn-lg btn-block">
-      {{ csrf_token() }} <!-- https://docs.djangoproject.com/en/3.1/ref/csrf/ -->
     </form>
   </div>
 {% endblock %}

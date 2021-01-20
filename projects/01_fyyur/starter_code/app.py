@@ -27,7 +27,6 @@ from flask_migrate import Migrate
 import regex as re
 from datetime import datetime
 
-from flask_wtf.csrf import CsrfProtect
 
 
 #----------------------------------------------------------------------------#
@@ -38,8 +37,6 @@ app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
-
-CsrfProtect(app) # https://stackoverflow.com/questions/58268282/how-to-fix-jinja2-exceptions-undefinederror-csrf-token-is-undefined
 
 # TODO: connect to a local postgresql database
 migrate = Migrate(app, db)
