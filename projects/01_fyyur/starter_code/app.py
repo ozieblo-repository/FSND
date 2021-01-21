@@ -21,7 +21,8 @@ from logging import (Formatter,
 from flask_wtf import Form
 from forms import (ShowForm,
                    VenueForm,
-                   ArtistForm)
+                   ArtistForm,
+                   csrf)
 from flask_migrate import Migrate
 
 import regex as re
@@ -37,6 +38,8 @@ app = Flask(__name__)
 moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
+
+csrf.init_app(app)
 
 # TODO: connect to a local postgresql database
 migrate = Migrate(app, db)
@@ -289,30 +292,71 @@ def create_venue_submission():
   # TODO: modify data to be the data object returned from db insertion
   # TODO: on unsuccessful db insert, flash an error instead.
 
-    try:
-        venue = Venue(name=request.form['name'],
-            city=request.form['city'],
-            state=request.form['state'],
-            address=request.form['address'],
-            phone=request.form['phone'],
-            genres=request.form.getlist('genres'),
-            image_link=request.form['image_link'],
-            facebook_link=request.form['facebook_link'],
-            website=request.form['website'],
-            seeking_talent=json.loads(request.form['seeking_talent'].lower()),
-            seeking_description=request.form['seeking_description'])
-        db.session.add(venue)
-        db.session.commit()
-        # on successful db insert, flash success
-        flash('Venue ' + request.form['name'] + ' was successfully added!')
-    except Exception as e:
-        print(e)
-        flash('An error occurred. Venue ' + request.form['name'] + ' could not be added')
-        db.session.rollback()
-    finally:
-        db.session.close()
+  form = VenueForm()
 
-    return render_template('pages/home.html')
+  name = form.name.data.strip()
+  city = form.city.data.strip()
+  state = form.state.data
+  address = form.address.data.strip()
+  phone = form.phone.data
+  # Normalize DB.  Strip anything from phone that isn't a number
+  phone = re.sub('\D', '', phone)  # e.g. (819) 392-1234 --> 8193921234
+  genres = form.genres.data  # ['Alternative', 'Classical', 'Country']
+  seeking_talent = True if form.seeking_talent.data == 'Yes' else False
+  seeking_description = form.seeking_description.data.strip()
+  image_link = form.image_link.data.strip()
+  website = form.website.data.strip()
+  facebook_link = form.facebook_link.data.strip()
+
+  # Redirect back to form if errors in form validation
+  if not form.validate():
+      flash(form.errors)
+      return redirect(url_for('create_venue_submission'))
+
+  else:
+      error_in_insert = False
+
+      # Insert form data into DB
+      try:
+          # creates the new venue with all fields but not genre yet
+          new_venue = Venue(name=name, city=city, state=state, address=address, phone=phone, \
+                            seeking_talent=seeking_talent, seeking_description=seeking_description,
+                            image_link=image_link, \
+                            website=website, facebook_link=facebook_link)
+          # genres can't take a list of strings, it needs to be assigned to db objects
+          # genres from the form is like: ['Alternative', 'Classical', 'Country']
+          for genre in genres:
+              # fetch_genre = session.query(Genre).filter_by(name=genre).one_or_none()  # Throws an exception if more than one returned, returns None if none
+              fetch_genre = Genre.query.filter_by(
+                  name=genre).one_or_none()  # Throws an exception if more than one returned, returns None if none
+              if fetch_genre:
+                  # if found a genre, append it to the list
+                  new_venue.genres.append(fetch_genre)
+
+              else:
+                  # fetch_genre was None. It's not created yet, so create it
+                  new_genre = Genre(name=genre)
+                  db.session.add(new_genre)
+                  new_venue.genres.append(new_genre)  # Create a new Genre item and append it
+
+          db.session.add(new_venue)
+          db.session.commit()
+      except Exception as e:
+          error_in_insert = True
+          print(f'Exception "{e}" in create_venue_submission()')
+          db.session.rollback()
+      finally:
+          db.session.close()
+
+      if not error_in_insert:
+          # on successful db insert, flash success
+          flash('Venue ' + request.form['name'] + ' was successfully listed!')
+          return redirect(url_for('index'))
+      else:
+          flash('An error occurred. Venue ' + name + ' could not be listed.')
+          print("Error in create_venue_submission()")
+          # return redirect(url_for('create_venue_submission'))
+          abort(500)
 
 @app.route('/venues/<venue_id>', methods=['DELETE'])
 def delete_venue(venue_id):
@@ -338,7 +382,7 @@ def artists():
   response = Artist.query.all()
 
   return render_template('pages/artists.html',
-                         rtists=response)
+                         artists=response)
 
 @app.route('/artists/search', methods=['POST'])
 def search_artists():

@@ -9,3 +9,7 @@ DEBUG = True
 # Connect to the database
 SQLALCHEMY_DATABASE_URI = 'postgres://michalozieblo@localhost:5432/udacityFyyur'
 SQLALCHEMY_TRACK_MODIFICATIONS = False
+
+
+
+SESSION_COOKIE_SECURE = False
