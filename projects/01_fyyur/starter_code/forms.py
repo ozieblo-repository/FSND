@@ -1,11 +1,10 @@
 from datetime import datetime
-from flask_wtf import (FlaskForm, CsrfProtect)
+from flask_wtf import FlaskForm
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField
 from wtforms.validators import DataRequired, AnyOf, URL, Optional
 
 
 
-csrf = CsrfProtect()
 
 
 class ShowForm(FlaskForm):

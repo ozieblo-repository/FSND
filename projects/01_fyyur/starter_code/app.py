@@ -8,7 +8,7 @@ import babel
 from flask import (Flask,
                    render_template,
                    request,
-                   Response,
+                   # Response,
                    flash,
                    redirect,
                    url_for,
@@ -21,14 +21,11 @@ from logging import (Formatter,
 from flask_wtf import Form
 from forms import (ShowForm,
                    VenueForm,
-                   ArtistForm,
-                   csrf)
+                   ArtistForm)
 from flask_migrate import Migrate
 
 import regex as re
 from datetime import datetime
-
-
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -39,7 +36,12 @@ moment = Moment(app)
 app.config.from_object('config')
 db = SQLAlchemy(app)
 
-csrf.init_app(app)
+
+app.config.update(
+    SESSION_COOKIE_SECURE=True,
+    SESSION_COOKIE_HTTPONLY=True,
+    SESSION_COOKIE_SAMESITE='Lax',
+)
 
 # TODO: connect to a local postgresql database
 migrate = Migrate(app, db)
@@ -54,12 +56,6 @@ class Genre(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String)
 
-# Initial population of the Genre table here --> No, for grading they want it to be blank
-# (just the schema is defined) and we count on the web form validators to only show valid choices (forms.py)
-
-# Association tables for Artist to Genre (many2many) and Venue to Genre (many2many)
-# DEFINE the Genre table as the child since it normally doesn't matter which we pick, but in this case,
-# its common to both many2many relationships and we have to constrain the parents to just one backref!
 artist_genre_table = db.Table('artist_genre_table',
     db.Column('genre_id', db.Integer, db.ForeignKey('Genre.id'), primary_key=True),
     db.Column('artist_id', db.Integer, db.ForeignKey('Artist.id'), primary_key=True)
@@ -69,7 +65,6 @@ venue_genre_table = db.Table('venue_genre_table',
     db.Column('genre_id', db.Integer, db.ForeignKey('Genre.id'), primary_key=True),
     db.Column('venue_id', db.Integer, db.ForeignKey('Venue.id'), primary_key=True)
 )
-
 
 class Venue(db.Model):
     __tablename__ = 'Venue'
@@ -83,19 +78,14 @@ class Venue(db.Model):
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
 
-    # Here we link the associative table for the m2m relationship with genre
     genres = db.relationship('Genre', secondary=venue_genre_table, backref=db.backref('venues'))
-    # secondary links this to the associative (m2m) table name
-    # can refences like venue.genres with the above statement
-    # backref creates an attribute on Venue objects so we can also reference like: genre.venues
 
     website = db.Column(db.String(120))
     seeking_talent = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(120))
 
-    # Venue is the parent (one-to-many) of a Show (Artist is also a foreign key, in def. of Show)
-    # In the parent is where we put the db.relationship in SQLAlchemy
-    shows = db.relationship('Show', backref='venue', lazy=True)    # Can reference show.venue (as well as venue.shows)
+
+    shows = db.relationship("Show", backref=db.backref('venues'))
 
     def __repr__(self):
         return f'<Venue {self.id} {self.name}>'
@@ -109,38 +99,31 @@ class Artist(db.Model):
     city = db.Column(db.String(120))
     state = db.Column(db.String(120))
     phone = db.Column(db.String(120))
-    # Genre should be its own table, with a many2many relationship with Artist
-    # and another many2many relationship with Venue
-    # genres = db.Column(db.String(120))
     image_link = db.Column(db.String(500))
     facebook_link = db.Column(db.String(120))
 
-    # Here we link the associative table for the m2m relationship with genre
     genres = db.relationship('Genre', secondary=artist_genre_table, backref=db.backref('artists'))
-    # secondary links this to the associative (m2m) table name
-    # can refences like artist.genres with the above statement
-    # backref creates an attribute on Artist objects so we can also reference like: genre.artists
 
     website = db.Column(db.String(120))
     seeking_venue = db.Column(db.Boolean, default=False)
     seeking_description = db.Column(db.String(120))
 
-    # Artist is the parent (one-to-many) of a Show (Venue is also a foreign key, in def. of Show)
-    # In the parent is where we put the db.relationship in SQLAlchemy
-    shows = db.relationship('Show', backref='artist', lazy=True)    # Can reference show.artist (as well as artist.shows)
+    shows = db.relationship("Show", backref=db.backref('artists'))
 
     def __repr__(self):
         return f'<Artist {self.id} {self.name}>'
-
 
 class Show(db.Model):
     __tablename__ = 'Show'
 
     id = db.Column(db.Integer, primary_key=True)
-    start_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)    # Start time required field
+    start_time = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
 
-    artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)   # Foreign key is the tablename.pk
+    artist_id = db.Column(db.Integer, db.ForeignKey('Artist.id'), nullable=False)
     venue_id = db.Column(db.Integer, db.ForeignKey('Venue.id'), nullable=False)
+
+    artist = db.relationship(Artist, backref = db.backref('shows_artist', cascade='all, delete'))
+    venue = db.relationship(Venue, backref = db.backref('shows_venue', cascade='all, delete'))
 
     def __repr__(self):
         return f'<Show {self.id} {self.start_time} artist_id={artist_id} venue_id={venue_id}>'
@@ -183,6 +166,7 @@ def venues():
                              Venue.state).distinct(Venue.city,
                                                    Venue.state).order_by('state').all()
     data = []
+
 
     for area in areas:
         venues = Venue.query.filter_by(state=area.state).filter_by(city=area.city).order_by('name').all()
@@ -309,7 +293,7 @@ def create_venue_submission():
   facebook_link = form.facebook_link.data.strip()
 
   # Redirect back to form if errors in form validation
-  if not form.validate():
+  if form.validate(): #not
       flash(form.errors)
       return redirect(url_for('create_venue_submission'))
 
@@ -408,56 +392,59 @@ def show_artist(artist_id):
   # shows the venue page with the given venue_id
   # TODO: replace with real venue data from the venues table, using venue_id
 
-  artist = Artist.query.filter(Artist.id == artist_id).first()
+  # Get all the data from the DB and populate the data dictionary (context)
+  # artist = Artist.query.filter_by(id=artist_id).one_or_none()
 
-  past = db.session.query(Show).filter(Show.artist_id == artist_id).filter(
-      Show.start_time < datetime.now()).join(Venue,
-                                             Show.venue_id == Venue.id).add_columns(Venue.id,
-                                                                                    Venue.name,
-                                                                                    Venue.image_link,
-                                                                                    Show.start_time).all()
+  #breakpoint()
 
-  upcoming = db.session.query(Show).filter(Show.artist_id == artist_id).filter(
-      Show.start_time > datetime.now()).join(Venue,
-                                             Show.venue_id == Venue.id).add_columns(Venue.id,
-                                                                                    Venue.name,
-                                                                                    Venue.image_link,
-                                                                                    Show.start_time).all()
+  artist = Artist.query.get(artist_id)  # Returns object by primary key, or None
+  print(artist)
+  if not artist:
+      # Didn't return one, user must've hand-typed a link into the browser that doesn't exist
+      # Redirect home
+      return redirect(url_for('index'))
+  else:
+      genres = [genre.name for genre in artist.genres]
 
-  upcoming_shows = []
+      past_shows = []
+      past_shows_count = 0
+      upcoming_shows = []
+      upcoming_shows_count = 0
 
-  past_shows = []
+      now = datetime.now()
 
-  for i in upcoming:
-      upcoming_shows.append({'venue_id': i[1],
-                             'venue_name': i[2],
-                             'image_link': i[3],
-                             'start_time': str(i[4])})
+      for show in artist.shows:
+          if show.start_time > now:
+              upcoming_shows_count += 1
+              upcoming_shows.append({"venue_id": show.venue_id,
+                  "venue_name": show.venue.name,
+                  "venue_image_link": show.venue.image_link,
+                  "start_time": format_datetime(str(show.start_time))})
 
-  for i in past:
-      past_shows.append({'venue_id': i[1],
-                         'venue_name': i[2],
-                         'image_link': i[3],
-                         'start_time': str(i[4])})
+          if show.start_time < now:
+              past_shows_count += 1
+              past_shows.append({"venue_id": show.venue_id,
+                  "venue_name": show.venue.name,
+                  "venue_image_link": show.venue.image_link,
+                  "start_time": format_datetime(str(show.start_time))})
 
-  if artist is None:
-      abort(404)
-
-  response = {"id": artist.id,
-              "name": artist.name,
-              "genres": [artist.genres],
-              "city": artist.city,
-              "state": artist.state,
-              "phone": artist.phone,
-              "website": artist.website,
-              "facebook_link": artist.facebook_link,
-              "seeking_venue": artist.seeking_venue,
-              "seeking_description": artist.seeking_description,
-              "image_link": artist.image_link,
-              "past_shows": past_shows,
-              "upcoming_shows": upcoming_shows,
-              "past_shows_count": len(past),
-              "upcoming_shows_count": len(upcoming)}
+      response = {"id": artist_id,
+                  "name": artist.name,
+                  "genres": genres,
+                  # "address": artist.address,
+                  "city": artist.city,
+                  "state": artist.state,
+                  # Put the dashes back into phone number
+                  "phone": (artist.phone[:3] + '-' + artist.phone[3:6] + '-' + artist.phone[6:]),
+                  "website": artist.website,
+                  "facebook_link": artist.facebook_link,
+                  "seeking_venue": artist.seeking_venue,
+                  "seeking_description": artist.seeking_description,
+                  "image_link": artist.image_link,
+                  "past_shows": past_shows,
+                  "past_shows_count": past_shows_count,
+                  "upcoming_shows": upcoming_shows,
+                  "upcoming_shows_count": upcoming_shows_count}
 
   return render_template('pages/show_artist.html',
                          artist=response)
@@ -699,10 +686,9 @@ def create_artist_submission():
   website = form.website.data.strip()
   facebook_link = form.facebook_link.data.strip()
 
-  if not form.validate():
+  if form.validate():
       flash(form.errors)
       return redirect(url_for('create_artist_submission'))
-
   else:
       error_in_insert = False
 
