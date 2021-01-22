@@ -1,6 +1,9 @@
 Fyyur
 -----
 
+> project status : ready for the review \
+> **Infosources used during the development and screenshots are included at the end of the ReadMe**
+
 ## Introduction
 
 Fyyur is a musical venue and artist booking site that facilitates the discovery and bookings of shows between local performing artists and venues. This site lets you list new artists and venues, discover them, and list shows with artists as a venue owner.
@@ -80,12 +83,12 @@ Overall:
 
 
 Highlight folders:
-* `templates/pages` -- (Already complete.) Defines the pages that are rendered to the site. These templates render views based on data passed into the template’s view, in the controllers defined in `app.py`. These pages successfully represent the data to the user, and are already defined for you.
-* `templates/layouts` -- (Already complete.) Defines the layout that a page can be contained in to define footer and header code for a given page.
-* `templates/forms` -- (Already complete.) Defines the forms used to create new artists, shows, and venues.
-* `app.py` -- (Missing functionality.) Defines routes that match the user’s URL, and controllers which handle data and renders views to the user. This is the main file you will be working on to connect to and manipulate the database and render views with data to the user, based on the URL.
-* Models in `app.py` -- (Missing functionality.) Defines the data models that set up the database tables.
-* `config.py` -- (Missing functionality.) Stores configuration variables and instructions, separate from the main application code. This is where you will need to connect to the database.
+* `templates/pages` -- Defines the pages that are rendered to the site. These templates render views based on data passed into the template’s view, in the controllers defined in `app.py`. These pages successfully represent the data to the user, and are already defined for you.
+* `templates/layouts` -- Defines the layout that a page can be contained in to define footer and header code for a given page.
+* `templates/forms` -- Defines the forms used to create new artists, shows, and venues.
+* `app.py` -- Defines routes that match the user’s URL, and controllers which handle data and renders views to the user. This is the main file you will be working on to connect to and manipulate the database and render views with data to the user, based on the URL.
+* Models in `app.py` -- Defines the data models that set up the database tables.
+* `config.py` -- Stores configuration variables and instructions, separate from the main application code. This is where you will need to connect to the database.
 
 
 Instructions
@@ -121,17 +124,6 @@ Acceptance Criteria
   * The right _type_ of relationship and parent-child dynamics between models should be accurately identified and fit the needs of this particular application.
   * The relationship between the models should be accurately configured, and referential integrity amongst the models should be preserved.
   * `flask db migrate` should work, and populate my local postgres database with properly configured tables for this application's objects, including proper columns, column data types, constraints, defaults, and relationships that completely satisfy the needs of this application. The proper type of relationship between venues, artists, and shows should be configured.
-
-##### Stand Out
-
-Looking to go above and beyond? This is the right section for you! Here are some challenges to make your submission stand out:
-
-*  Implement artist availability. An artist can list available times that they can be booked. Restrict venues from being able to create shows with artists during a show time that is outside of their availability.
-* Show Recent Listed Artists and Recently Listed Venues on the homepage, returning results for Artists and Venues sorting by newly created. Limit to the 10 most recently listed items.
-* Implement Search Artists by City and State, and Search Venues by City and State. Searching by "San Francisco, CA" should return all artists or venues in San Francisco, CA.
-
-Best of luck in your final project! Fyyur depends on you!
-
 
 ## Development Setup
 1. **Download the project starter code locally**
@@ -179,3 +171,83 @@ python3 app.py
 6. **Verify on the Browser**<br>
 Navigate to project homepage [http://127.0.0.1:5000/](http://127.0.0.1:5000/) or [http://localhost:5000](http://localhost:5000) 
 
+## Infosources used during the development:
+
+
+*Basic Relationship Patterns*¶ https://docs.sqlalchemy.org/en/13/orm/basic_relationships.html#many-to-many
+
+
+
+*Cross Site Request Forgery protection* [Cross Site Request Forgery protection | Django documentation | Django](https://docs.djangoproject.com/en/3.1/ref/csrf/)
+
+*API to Jinja* [API — Jinja Documentation (2.11.x)](https://jinja.palletsprojects.com/en/2.11.x/api/#custom-filters)
+
+*Babel Date and Time* [Date and Time — Babel 2.7.0 documentation](http://babel.pocoo.org/en/latest/dates.html#pattern-syntax)
+
+*Frontend formats genres incorrectly. Is this supposed to happen? How do I take care of it?* [Knowledge - Udacity](https://knowledge.udacity.com/questions/188987)
+
+*can ‘facebook_link’ be empty?* [Knowledge - Udacity](https://knowledge.udacity.com/questions/330487)
+
+*Target database is not up to date* [python - Target database is not up to date - Stack Overflow](https://stackoverflow.com/questions/17768940/target-database-is-not-up-to-date)
+
+*Flask init-db no such command* [python - Flask init-db no such command - Stack Overflow](https://stackoverflow.com/questions/58389621/flask-init-db-no-such-command)
+
+*Flask - Bad Request The browser (or proxy) sent a request that this server could not understand [duplicate]* [python - Flask - Bad Request The browser (or proxy) sent a request that this server could not understand - Stack Overflow](https://stackoverflow.com/questions/48780324/flask-bad-request-the-browser-or-proxy-sent-a-request-that-this-server-could/48781606)
+
+*How I Use Python Debugger to Fix Code* https://codeburst.io/how-i-use-python-debugger-to-fix-code-279f11f75866
+
+*CSRF Flask* [Security Considerations — Flask Documentation (2.0.x)](https://flask.palletsprojects.com/en/master/security/#set-cookie-options)
+[CSRF is (really) dead](https://scotthelme.co.uk/csrf-is-really-dead/)
+
+*babel\dates.py AttributeError: ‘NoneType’ object has no attribute ‘days’* [Knowledge - Udacity](https://knowledge.udacity.com/questions/70223)
+
+*genres not displayed correctly for venues* [Knowledge - Udacity](https://knowledge.udacity.com/questions/302981)
+
+*ordering /venues and /shows page* [Knowledge - Udacity](https://knowledge.udacity.com/questions/262190)
+
+*Edit and Update functions needed for Fyyur Project? (Nov 2020)* [Knowledge - Udacity](https://knowledge.udacity.com/questions/383199)
+
+*Genres in venue/id route are kinds of messy* [Knowledge - Udacity](https://knowledge.udacity.com/questions/196162)
+
+*IMPLEMENT NEW ARTIST FORM AND NEW SHOW FORM Todo* [Knowledge - Udacity](https://knowledge.udacity.com/questions/171591)
+
+*Frontend formats genres incorrectly. Is this supposed to happen? How do I take care of it?* [Knowledge - Udacity](https://knowledge.udacity.com/questions/188987)
+
+Other:
+
+[Defining Constraints and Indexes —    SQLAlchemy 1.4 Documentation](https://docs.sqlalchemy.org/en/14/core/constraints.html)
+
+[The Flask Mega-Tutorial Part III: Web Forms](https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iii-web-forms) 
+https://blog.miguelgrinberg.com/post/the-flask-mega-tutorial-part-iii-web-forms
+
+[pip freeze - pip documentation v20.3.3](https://pip.pypa.io/en/stable/reference/pip_freeze/)
+
+[Primer on Python Decorators – Real Python](https://realpython.com/primer-on-python-decorators/#decorators-with-arguments)
+
+[HTML Forms](https://www.w3schools.com/html/html_forms.asp)
+
+[python - Form validation fails due missing CSRF - Stack Overflow](https://stackoverflow.com/questions/21501058/form-validation-fails-due-missing-csrf)
+
+https://www.reddit.com/r/flask/comments/c5boap/flask_wtforms_csrf_token_missing_with/
+
+[php - Cannot simply use PostgreSQL table name (“relation does not exist”) - Stack Overflow](https://stackoverflow.com/questions/695289/cannot-simply-use-postgresql-table-name-relation-does-not-exist)
+
+[How can I drop all the tables in a PostgreSQL database? - Stack Overflow](https://stackoverflow.com/questions/3327312/how-can-i-drop-all-the-tables-in-a-postgresql-database)
+
+[python - “module ‘babel’ has no attribute ‘dates’” when trying to format time and date - Stack Overflow](https://stackoverflow.com/questions/65611511/module-babel-has-no-attribute-dates-when-trying-to-format-time-and-date)
+
+[string - Python How to get 1st element of date token - Stack Overflow](https://stackoverflow.com/questions/24174596/python-how-to-get-1st-element-of-date-token)
+
+[python - How do I format a date in Jinja2? - Stack Overflow](https://stackoverflow.com/questions/4830535/how-do-i-format-a-date-in-jinja2)
+
+[python - db.Model vs db.Table in Flask-SQLAlchemy - Stack Overflow](https://stackoverflow.com/questions/45044926/db-model-vs-db-table-in-flask-sqlalchemy)
+
+[Flask-SQLAlchemy — Flask-SQLAlchemy Documentation (2.x)](https://flask-sqlalchemy.palletsprojects.com/en/2.x/)
+
+[Welcome to Flask — Flask Documentation (1.1.x)](https://flask.palletsprojects.com/en/1.1.x/)
+
+## Result / Screenshots:
+
+![alt text](https://github.com/ozieblo-repository/FSND/blob/master/projects/01_fyyur/starter_code/Screenshot%202021-01-23%20at%2000.00.16.png?raw=true)
+
+![alt text](https://github.com/ozieblo-repository/FSND/blob/master/projects/01_fyyur/starter_code/Screenshot%202021-01-23%20at%2000.00.40.png?raw=true)
