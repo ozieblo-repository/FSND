@@ -140,7 +140,7 @@ def format_datetime(value, format='medium'):
       format="EEEE MMMM, d, y 'at' h:mma"
   elif format == 'medium':
       format="EE MM, dd, y h:mma"
-  return babel.dates.format_datetime(date, format)
+  return babel.dates.format_datetime(date, format, locale='en')
 
 app.jinja_env.filters['datetime'] = format_datetime
 
@@ -230,21 +230,23 @@ def show_venue(venue_id):
   for i in upcoming:
       upcoming_shows.append({'artist_id': i[1],
                              'artist_name': i[2],
-                             'image_link': i[3],
+                             'artist_image_link': i[3],
                              'start_time': str(i[4])})
 
   for i in past:
       past_shows.append({'artist_id': i[1],
                          'artist_name': i[2],
-                         'image_link': i[3],
+                         'artist_image_link': i[3],
                          'start_time': str(i[4])})
 
   if venue is None:
       abort(404)
 
+  genres = [genre.name for genre in venue.genres]
+
   response = {"id": venue.id,
               "name": venue.name,
-              "genres": [venue.genres],
+              "genres": genres,
               "address": venue.address,
               "city": venue.city,
               "state": venue.state,
