@@ -1,11 +1,13 @@
 from datetime import datetime
 from flask_wtf import FlaskForm
-from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField
-from wtforms.validators import DataRequired, AnyOf, URL, Optional
-
-
-
-
+from wtforms import (StringField,
+                     SelectField,
+                     SelectMultipleField,
+                     DateTimeField)
+from wtforms.validators import (DataRequired,
+                                AnyOf,
+                                URL,
+                                Optional)
 
 class ShowForm(FlaskForm):
     artist_id = StringField(
