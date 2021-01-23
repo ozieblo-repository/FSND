@@ -32,10 +32,7 @@ Our tech stack will include the following:
 You can download and install the dependencies mentioned above using `pip` as:
 ```
 pip install virtualenv
-pip install SQLAlchemy
 pip install postgres
-pip install Flask
-pip install Flask-Migrate
 ```
 > **Note** - If we do not mention the specific version of a package, then the default latest stable package will be installed. 
 
@@ -56,8 +53,9 @@ npm install bootstrap@3
 
   ```sh
   ├── README.md
-  ├── app.py *** the main driver of the app. Includes your SQLAlchemy models.
-                    "python app.py" to run after installing dependences
+  ├── app.py *** the main driver of the app. 
+  │                 "python app.py" to run after installing dependences
+  ├── models.py *** includes your SQLAlchemy models.
   ├── config.py *** Database URLs, CSRF generation, etc
   ├── error.log
   ├── forms.py *** Your forms
@@ -245,6 +243,8 @@ https://www.reddit.com/r/flask/comments/c5boap/flask_wtforms_csrf_token_missing_
 [Flask-SQLAlchemy — Flask-SQLAlchemy Documentation (2.x)](https://flask-sqlalchemy.palletsprojects.com/en/2.x/)
 
 [Welcome to Flask — Flask Documentation (1.1.x)](https://flask.palletsprojects.com/en/1.1.x/)
+
+[.env setup](https://itnext.io/start-using-env-for-your-flask-project-and-stop-using-environment-variables-for-development-247dc12468be)
 
 ## Result / Screenshots:
 
