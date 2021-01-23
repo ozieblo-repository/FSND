@@ -7,7 +7,7 @@ DB_PASSWD = os.environ.get('DB_PASSWD')
 if not all([DB_HOST, DB_USR, DB_PASSWD]):
    raise Exception('Missing database environment variables!')
 
-SQLALCHEMY_DATABASE_URI = 'postgres://{}@{}/udacityFyyur'
+DB_URL = 'postgres://{}:{}@{}/udacityFyyur'
 
 SECRET_KEY = os.urandom(32)
 
