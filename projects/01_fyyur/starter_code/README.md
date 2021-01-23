@@ -55,7 +55,7 @@ npm install bootstrap@3
   ├── README.md
   ├── app.py *** the main driver of the app. 
   │                 "python app.py" to run after installing dependences
-  ├── models.py *** includes your SQLAlchemy models.
+  ├── models.py *** includes SQLAlchemy models
   ├── config.py *** Database URLs, CSRF generation, etc
   ├── error.log
   ├── forms.py *** Your forms
@@ -74,7 +74,6 @@ npm install bootstrap@3
   ```
 
 Overall:
-* Models are located in the `MODELS` section of `app.py`.
 * Controllers are also located in `app.py`.
 * The web frontend is located in `templates/`, which builds static assets deployed to the web server at `static/`.
 * Web forms for creating data are located in `form.py`
@@ -85,7 +84,7 @@ Highlight folders:
 * `templates/layouts` -- Defines the layout that a page can be contained in to define footer and header code for a given page.
 * `templates/forms` -- Defines the forms used to create new artists, shows, and venues.
 * `app.py` -- Defines routes that match the user’s URL, and controllers which handle data and renders views to the user. This is the main file you will be working on to connect to and manipulate the database and render views with data to the user, based on the URL.
-* Models in `app.py` -- Defines the data models that set up the database tables.
+* Models in `models.py` -- Defines the data models that set up the database tables.
 * `config.py` -- Stores configuration variables and instructions, separate from the main application code. This is where you will need to connect to the database.
 
 
@@ -245,6 +244,8 @@ https://www.reddit.com/r/flask/comments/c5boap/flask_wtforms_csrf_token_missing_
 [Welcome to Flask — Flask Documentation (1.1.x)](https://flask.palletsprojects.com/en/1.1.x/)
 
 [.env setup](https://itnext.io/start-using-env-for-your-flask-project-and-stop-using-environment-variables-for-development-247dc12468be)
+
+[How do I split Flask models out of app.py without passing db object all over?](https://stackoverflow.com/questions/34281873/how-do-i-split-flask-models-out-of-app-py-without-passing-db-object-all-over)
 
 ## Result / Screenshots:
 
