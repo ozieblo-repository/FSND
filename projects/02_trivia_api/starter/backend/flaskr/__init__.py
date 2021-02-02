@@ -12,14 +12,25 @@ def create_app(test_config=None):
   # create and configure the app
   app = Flask(__name__)
   setup_db(app)
+  CORS(app)
   
   '''
-  @TODO: Set up CORS. Allow '*' for origins. Delete the sample route after completing the TODOs
+  @TODO: Set up CORS. Allow '*' for origins. 
+  Delete the sample route after completing the TODOs <- https://knowledge.udacity.com/questions/413252
   '''
+  cors = CORS(app, resources={r"*": {"origins": "*"}})
 
   '''
   @TODO: Use the after_request decorator to set Access-Control-Allow
   '''
+  @app.after_request
+  def after_request(response):
+    # https://knowledge.udacity.com/questions/378076
+    response.headers.add("Access-Control-Allow-Headers",
+                         "Content-Type, Authorization")
+    response.headers.add("Access-Control-Allow-Methods",
+                         "GET, POST, PATCH, DELETE, OPTIONS")
+    return response
 
   '''
   @TODO: 
@@ -27,6 +38,16 @@ def create_app(test_config=None):
   for all available categories.
   '''
 
+  # https://knowledge.udacity.com/questions/119096
+
+  @app.route('/categories')
+  def retrieve_categories():
+    categories = Category.query.order_by(Category.id).all()
+    if len(categories) == 0:
+      abort(404) # resource not found
+    return jsonify({'success': True,
+                    'category': [category.format() for category in categories],
+                    'total_categories': len(categories)})
 
   '''
   @TODO: 
@@ -40,6 +61,35 @@ def create_app(test_config=None):
   ten questions per page and pagination at the bottom of the screen for three pages.
   Clicking on the page numbers should update the questions. 
   '''
+
+  # https://knowledge.udacity.com/questions/103865
+  # https://knowledge.udacity.com/questions/125664
+  # https://knowledge.udacity.com/questions/309862
+
+  def paginate_questions(request, questions_list):
+      page = request.args.get('page', 1, type=int)
+      start = (page - 1) * QUESTIONS_PER_PAGE
+      end = start + QUESTIONS_PER_PAGE
+      questions = [question.format() for question in questions_list]
+      paginated_questions = questions[start:end]
+      return paginated_questions
+
+  def get_category_list():
+      categories = {}
+      for category in Category.query.all():
+          categories[category.id] = category.type
+      return categories
+
+  @app.route('/questions')
+  def get_questions():
+      questions_list = Question.query.all()
+      paginated_questions = paginate_questions(request, questions_list)
+      if len(paginated_questions) == 0:
+          abort(404)
+      return jsonify({'success': True,
+                      'questions': paginated_questions,
+                      'total_questions': len(questions_list),
+                      'categories': get_category_list()})
 
   '''
   @TODO: 
