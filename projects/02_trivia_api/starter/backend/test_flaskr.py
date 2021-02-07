@@ -6,12 +6,14 @@ from flask_sqlalchemy import SQLAlchemy
 from flaskr import create_app
 from models import setup_db, Question, Category
 
-
 class TriviaTestCase(unittest.TestCase):
+
     """This class represents the trivia test case"""
 
     def setUp(self):
+
         """Define test variables and initialize app."""
+
         self.app = create_app()
         self.client = self.app.test_client
         self.database_name = "trivia_test"
@@ -30,11 +32,6 @@ class TriviaTestCase(unittest.TestCase):
     def tearDown(self):
         """Executed after reach test"""
         pass
-
-    """
-    TODO
-    Write at least one test for each test for successful operation and for expected errors.
-    """
 
     # https://knowledge.udacity.com/questions/422782
 

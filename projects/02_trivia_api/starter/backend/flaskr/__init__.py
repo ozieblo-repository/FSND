@@ -119,12 +119,14 @@ def create_app(test_config=None):
   @app.route('/questions/<int:question_id>', methods=['DELETE'])
   def delete_specific_question(question_id):
       try:
-          # selected_question=Question.query.get(question_id)
+
           selected_question = Question.query.filter(Question.id == question_id).one_or_none()
+
           if selected_question is None:
               abort(404)
+
           selected_question.delete()
-          # questions = Question.query.order_by(Question.id).all()
+
           return jsonify({'success': True,
                           'deleted': question_id,
                           'message': "Question successfully deleted"})
@@ -206,6 +208,8 @@ def create_app(test_config=None):
   '''
   GET endpoint to get questions based on category. 
   '''
+
+  # https://knowledge.udacity.com/questions/421873
 
   @app.route('/categories/<int:id>/questions')
   def get_questions_by_category(id):
@@ -293,5 +297,11 @@ def create_app(test_config=None):
       return jsonify({"success": False,
                       "error": 422,
                       "message": "Unprocessable"}), 422
+
+  @app.errorhandler(500)
+  def unprocessable(error):
+      return jsonify({"success": False,
+                      "error": 500,
+                      "message": "Internal server error"}), 500
 
   return app
