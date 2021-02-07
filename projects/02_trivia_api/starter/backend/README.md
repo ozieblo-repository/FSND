@@ -24,6 +24,9 @@ This will install all of the required packages we selected within the `requireme
 
 - [Flask-CORS](https://flask-cors.readthedocs.io/en/latest/#) is the extension we'll use to handle cross origin requests from our frontend server. 
 
+#### Style guideline
+backend code follows PEP8
+
 ## Database Setup
 With Postgres running, restore a database using the trivia.psql file provided. From the backend folder in terminal run:
 ```bash
@@ -70,39 +73,308 @@ The frontend is set up to expect certain endpoints and response data formats alr
 
 ## Endpoints
 
-`GET '/categories'` : 
+### `GET '/categories'` :
 - handle requests for all available categories
 - fetches a dictionary of categories in which the keys are the ids and the value is the corresponding string of the category
 - request arguments: None
 - category key:value is 1 = Science, 2 = Art, 3 = Geography, 4 = History, 5 = Entertainment, 6 = Sports
 
-`GET '/questions'` : 
+```
+(FSND) Michas-MBP:backend michalozieblo$ curl http://localhost:3000/categories
+{
+  "categories": {
+    "1": "Science", 
+    "2": "Art", 
+    "3": "Geography", 
+    "4": "History", 
+    "5": "Entertainment", 
+    "6": "Sports"
+  }, 
+  "success": true, 
+  "total_categories": 6
+}
+
+```
+
+### `GET '/questions'` : 
 - handle requests for questions, including pagination (every 10 questions). 
 - return a list of questions, number of total questions, current category, categories. 
 - request arguments: None
 
-`DELETE '/questions/<int:question_id>'` : 
+```
+(FSND) Michas-MBP:backend michalozieblo$ curl http://localhost:3000/questions
+{
+  "categories": {
+    "1": "Science", 
+    "2": "Art", 
+    "3": "Geography", 
+    "4": "History", 
+    "5": "Entertainment", 
+    "6": "Sports"
+  }, 
+  "current_category": null, 
+  "questions": [
+    {
+      "answer": "Maya Angelou", 
+      "category": 4, 
+      "difficulty": 2, 
+      "id": 5, 
+      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+    }, 
+    {
+      "answer": "Muhammad Ali", 
+      "category": 4, 
+      "difficulty": 1, 
+      "id": 9, 
+      "question": "What boxer's original name is Cassius Clay?"
+    }, 
+    {
+      "answer": "Apollo 13", 
+      "category": 5, 
+      "difficulty": 4, 
+      "id": 2, 
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    }, 
+    {
+      "answer": "Tom Cruise", 
+      "category": 5, 
+      "difficulty": 4, 
+      "id": 4, 
+      "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+    }, 
+    {
+      "answer": "Edward Scissorhands", 
+      "category": 5, 
+      "difficulty": 3, 
+      "id": 6, 
+      "question": "What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?"
+    }, 
+    {
+      "answer": "Brazil", 
+      "category": 6, 
+      "difficulty": 3, 
+      "id": 10, 
+      "question": "Which is the only team to play in every soccer World Cup tournament?"
+    }, 
+    {
+      "answer": "Uruguay", 
+      "category": 6, 
+      "difficulty": 4, 
+      "id": 11, 
+      "question": "Which country won the first ever soccer World Cup in 1930?"
+    }, 
+    {
+      "answer": "George Washington Carver", 
+      "category": 4, 
+      "difficulty": 2, 
+      "id": 12, 
+      "question": "Who invented Peanut Butter?"
+    }, 
+    {
+      "answer": "Lake Victoria", 
+      "category": 3, 
+      "difficulty": 2, 
+      "id": 13, 
+      "question": "What is the largest lake in Africa?"
+    }, 
+    {
+      "answer": "Escher", 
+      "category": 2, 
+      "difficulty": 1, 
+      "id": 16, 
+      "question": "Which Dutch graphic artist\u2013initials M C was a creator of optical illusions?"
+    }
+  ], 
+  "success": true, 
+  "total_questions": 25
+}
+```
+
+### `DELETE '/questions/<int:question_id>'` : 
 - an endpoint to remove question using a question ID.
 - request argument: question ID
 
-`POST '/questions'` : 
+```
+(FSND) Michas-MBP:backend michalozieblo$ curl http://localhost:3000/questions/16 -X DELETE
+{
+  "deleted": 16, 
+  "message": "Question successfully deleted", 
+  "success": true
+}
+```
+
+### `POST '/questions'` : 
 - insert a new question, which will require the question and answer text, category, and difficulty score.
 - request arguments: None
 
-`POST '/questions/search'` : 
+```
+(FSND) Michas-MBP:backend michalozieblo$ curl http://localhost:5000/questions -X POST -H "Content-Type: application/json" -d "{\"question\": \"test\", \"answer\":\"test\", \"category\":\"4\", \"difficulty\":\"3\"}"
+{
+  "categories": {
+    "1": "Science", 
+    "2": "Art", 
+    "3": "Geography", 
+    "4": "History", 
+    "5": "Entertainment", 
+    "6": "Sports"
+  }, 
+  "message": "Question successfully created!", 
+  "questions": [
+    {
+      "answer": "Maya Angelou", 
+      "category": 4, 
+      "difficulty": 2, 
+      "id": 5, 
+      "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+    }, 
+    {
+      "answer": "Muhammad Ali", 
+      "category": 4, 
+      "difficulty": 1, 
+      "id": 9, 
+      "question": "What boxer's original name is Cassius Clay?"
+    }, 
+    {
+      "answer": "Apollo 13", 
+      "category": 5, 
+      "difficulty": 4, 
+      "id": 2, 
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    }, 
+    {
+      "answer": "Tom Cruise", 
+      "category": 5, 
+      "difficulty": 4, 
+      "id": 4, 
+      "question": "What actor did author Anne Rice first denounce, then praise in the role of her beloved Lestat?"
+    }, 
+    {
+      "answer": "Edward Scissorhands", 
+      "category": 5, 
+      "difficulty": 3, 
+      "id": 6, 
+      "question": "What was the title of the 1990 fantasy directed by Tim Burton about a young man with multi-bladed appendages?"
+    }, 
+    {
+      "answer": "Brazil", 
+      "category": 6, 
+      "difficulty": 3, 
+      "id": 10, 
+      "question": "Which is the only team to play in every soccer World Cup tournament?"
+    }, 
+    {
+      "answer": "Uruguay", 
+      "category": 6, 
+      "difficulty": 4, 
+      "id": 11, 
+      "question": "Which country won the first ever soccer World Cup in 1930?"
+    }, 
+    {
+      "answer": "George Washington Carver", 
+      "category": 4, 
+      "difficulty": 2, 
+      "id": 12, 
+      "question": "Who invented Peanut Butter?"
+    }, 
+    {
+      "answer": "Lake Victoria", 
+      "category": 3, 
+      "difficulty": 2, 
+      "id": 13, 
+      "question": "What is the largest lake in Africa?"
+    }, 
+    {
+      "answer": "Mona Lisa", 
+      "category": 2, 
+      "difficulty": 3, 
+      "id": 17, 
+      "question": "La Giaconda is better known as what?"
+    }
+  ], 
+  "success": true, 
+  "total_questions": 25
+}
+```
+
+
+### `POST '/questions/search'` : 
 - get questions based on a search term. 
 - return any questions for whom the search term is a substring of the question. 
 - request arguments: None
 
-`GET '/categories/<int:id>/questions'` : 
+```
+(FSND) Michas-MBP:backend michalozieblo$ curl http://localhost:3000/questions/search -X POST -d '{"searchTerm":"Tom"}' -H "Content-Type: application/json"
+{
+  "current_category": null, 
+  "questions": [
+    {
+      "answer": "Apollo 13", 
+      "category": 5, 
+      "difficulty": 4, 
+      "id": 2, 
+      "question": "What movie earned Tom Hanks his third straight Oscar nomination, in 1996?"
+    }
+  ], 
+  "success": true, 
+  "total_questions": 1
+}
+```
+
+### `GET '/categories/<int:id>/questions'` : 
 - get questions based on category. 
 - request argument: category ID
 
-`POST '/quizzes'` : 
+```
+(FSND) Michas-MBP:backend michalozieblo$ curl http://localhost:3000/categories/2/questions
+{
+  "current_category": "Art", 
+  "questions": [
+    {
+      "answer": "Mona Lisa", 
+      "category": 2, 
+      "difficulty": 3, 
+      "id": 17, 
+      "question": "La Giaconda is better known as what?"
+    }, 
+    {
+      "answer": "One", 
+      "category": 2, 
+      "difficulty": 4, 
+      "id": 18, 
+      "question": "How many paintings did Van Gogh sell in his lifetime?"
+    }, 
+    {
+      "answer": "Jackson Pollock", 
+      "category": 2, 
+      "difficulty": 2, 
+      "id": 19, 
+      "question": "Which American artist was a pioneer of Abstract Expressionism, and a leading exponent of action painting?"
+    }
+  ], 
+  "success": true, 
+  "total_questions": 24
+}
+```
+
+### `POST '/quizzes'` : 
 - get questions to play the quiz. 
 - take category and previous question parameters and return a random questions within the given category, if provided, and that is not one of the previous questions. 
 - request arguments: None
 
+```
+(FSND) Michas-MBP:backend michalozieblo$ curl -X POST "http://localhost:3000/quizzes" -d "{\"quiz_category\":{\"type\": \"History\", \"id\": \"4\"},\"previous_questions\":[2]}" -H "Content-Type: application/json"
+{
+  "question": {
+    "answer": "Maya Angelou", 
+    "category": 4, 
+    "difficulty": 2, 
+    "id": 5, 
+    "question": "Whose autobiography is entitled 'I Know Why the Caged Bird Sings'?"
+  }, 
+  "success": true
+}
+
+```
 ## Testing
 To run the tests, run
 ```
