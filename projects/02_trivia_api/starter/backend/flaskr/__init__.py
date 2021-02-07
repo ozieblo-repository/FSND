@@ -56,10 +56,6 @@ def create_app(test_config=None):
   number of total questions, current category, categories. 
   '''
 
-  # https://knowledge.udacity.com/questions/103865
-  # https://knowledge.udacity.com/questions/125664
-  # https://knowledge.udacity.com/questions/309862
-
   def paginate_questions(request, questions_list):
 
       page = request.args.get('page', 1, type=int)
