@@ -23,9 +23,11 @@ def create_app(test_config=None):
   '''
   @TODO: Use the after_request decorator to set Access-Control-Allow
   '''
+
+  # https://knowledge.udacity.com/questions/378076
+
   @app.after_request
   def after_request(response):
-    # https://knowledge.udacity.com/questions/378076
     response.headers.add("Access-Control-Allow-Headers",
                          "Content-Type, Authorization")
     response.headers.add("Access-Control-Allow-Methods",
@@ -39,15 +41,20 @@ def create_app(test_config=None):
   '''
 
   # https://knowledge.udacity.com/questions/119096
+  # https://knowledge.udacity.com/questions/233578
 
   @app.route('/categories')
-  def retrieve_categories():
-    categories = Category.query.order_by(Category.id).all()
-    if len(categories) == 0:
-      abort(404) # resource not found
-    return jsonify({'success': True,
-                    'category': [category.format() for category in categories],
-                    'total_categories': len(categories)})
+  def get_categories():
+      page = request.args.get('page', 1, type=int)
+      start = (page - 1) * 10
+      end = start + 10
+      categories = Category.query.all()
+      if len(categories) == 0:
+          abort(404)
+      formatted_categories = {category.id: category.type for category in categories}
+      return jsonify({'success': True,
+                      'categories': formatted_categories,
+                      'total_categories': len(categories)})
 
   '''
   @TODO: 
@@ -89,7 +96,8 @@ def create_app(test_config=None):
       return jsonify({'success': True,
                       'questions': paginated_questions,
                       'total_questions': len(questions_list),
-                      'categories': get_category_list()})
+                      'categories': get_category_list(),
+                      'current_category': None})
 
   '''
   @TODO: 
@@ -98,6 +106,23 @@ def create_app(test_config=None):
   TEST: When you click the trash icon next to a question, the question will be removed.
   This removal will persist in the database and when you refresh the page. 
   '''
+
+  # https://knowledge.udacity.com/questions/439603
+
+  @app.route('/questions/<int:question_id>', methods=['DELETE'])
+  def delete_specific_question(question_id):
+      try:
+          # selected_question=Question.query.get(question_id)
+          selected_question = Question.query.filter(Question.id == question_id).one_or_none()
+          if selected_question is None:
+              abort(404)
+          selected_question.delete()
+          # questions = Question.query.order_by(Question.id).all()
+          return jsonify({'success': True,
+                          'deleted': question_id,
+                          'message': "Question successfully deleted"})
+      except:
+          abort(422)
 
   '''
   @TODO: 
@@ -110,6 +135,46 @@ def create_app(test_config=None):
   of the questions list in the "List" tab.  
   '''
 
+  @app.route('/questions', methods=['POST'])
+  def create_question():
+
+      data = request.get_json()
+
+      question = data.get('question', '')
+      answer = data.get('answer', '')
+      difficulty = data.get('difficulty', '')
+      category = data.get('category', '')
+
+      selection = Question.query.all()
+      total_questions = len(selection)
+      current_questions = paginate_questions(request, selection)
+
+      categories = Category.query.all()
+      categories_dict = {}
+
+      for cat in categories:
+          categories_dict[cat.id] = cat.type
+
+      if ((question == '') or (answer == '') or (difficulty == '') or (category == '')):
+          abort(422)
+
+      try:
+          question = Question(question=question,
+                              answer=answer,
+                              difficulty=difficulty,
+                              category=category)
+
+          question.insert()  # save the question
+
+          return jsonify({'success': True,
+                          'message': 'Question successfully created!',
+                          'questions': current_questions,
+                          'total_questions': total_questions,
+                          'categories': categories_dict}), 201
+
+      except Exception:
+          abort(422)
+
   '''
   @TODO: 
   Create a POST endpoint to get questions based on a search term. 
@@ -121,6 +186,26 @@ def create_app(test_config=None):
   Try using the word "title" to start. 
   '''
 
+  # https://knowledge.udacity.com/questions/336412
+
+  @app.route('/questions/search', methods=['POST'])
+  def search_questions():
+
+      try:
+          search_term = request.json.get('searchTerm', None)
+          questions = Question.query.filter(Question.question.ilike('%{}%'.format(search_term))).all()
+          formatted_questions = [question.format() for question in questions]
+
+          if len(questions) == 0:
+              abort(404)  # resource not found
+          return jsonify({"success": True,
+                          "questions": formatted_questions,
+                          "total_questions": len(questions),
+                          "current_category": None})
+      except Exception as e:
+          print("Exception is: ", e)
+          abort(404)
+
   '''
   @TODO: 
   Create a GET endpoint to get questions based on category. 
@@ -130,6 +215,22 @@ def create_app(test_config=None):
   category to be shown. 
   '''
 
+  @app.route('/categories/<int:id>/questions')
+  def get_questions_by_category(id):
+
+      category = Category.query.filter_by(id=id).one_or_none()
+
+      if (category is None):
+          abort(400)
+
+      selection = Question.query.filter_by(category=category.id).all()
+
+      paginated = paginate_questions(request, selection)
+
+      return jsonify({'success': True,
+                      'questions': paginated,
+                      'total_questions': len(Question.query.all()),
+                      'current_category': category.type})
 
   '''
   @TODO: 
@@ -143,12 +244,69 @@ def create_app(test_config=None):
   and shown whether they were correct or not. 
   '''
 
+  # https://knowledge.udacity.com/questions/58505
+
+  @app.route('/quizzes', methods=['POST'])
+  def play_quiz_question():
+
+      body = request.get_json()
+      previous = body.get('previous_questions')
+      category = body.get('quiz_category')
+
+      if ((category is None) or (previous is None)):
+          abort(400)
+
+      if (category['id'] == 0):
+          questions = Question.query.all() # load all questions if "ALL" option is selected
+      else:
+          questions = Question.query.filter_by(category=category['id']).all()
+
+      total = len(questions)
+
+      def get_random_question():
+          return questions[random.randrange(0, len(questions), 1)]
+
+      def check_if_used(question):
+          used = False
+          for q in previous:
+              if (q == question.id):
+                  used = True
+          return used
+
+      question = get_random_question()
+
+      while (check_if_used(question)):
+          question = get_random_question()
+
+          # when all questions have been asked, return without question (for <5 questions)
+          if (len(previous) == total):
+              return jsonify({'success': True})
+
+      return jsonify({'success': True,
+                      'question': question.format()})
+
   '''
   @TODO: 
   Create error handlers for all expected errors 
   including 404 and 422. 
   '''
-  
-  return app
 
-    
+  @app.errorhandler(400)
+  def bad_request(error):
+      return jsonify({"success": False,
+                      "error": 400,
+                      "message": "Bad request"}), 400
+
+  @app.errorhandler(404)
+  def not_found(error):
+      return jsonify({"success": False,
+                      "error": 404,
+                      "message": "Resource not found"}), 404
+
+  @app.errorhandler(422)
+  def unprocessable(error):
+      return jsonify({"success": False,
+                      "error": 422,
+                      "message": "Unprocessable"}), 422
+
+  return app

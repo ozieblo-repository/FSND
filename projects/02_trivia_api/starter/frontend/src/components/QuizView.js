@@ -130,10 +130,19 @@ class QuizView extends Component {
     )
   }
 
+  //evaluateAnswer = () => {
+  //  const formatGuess = this.state.guess.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").toLowerCase()
+  //  // https://knowledge.udacity.com/questions/438162
+  //  const answerArray = this.state.currentQuestion.answer.toLowerCase() // .split(' ');
+  //  return answerArray.includes(formatGuess)
+  //}
+
+  // https://knowledge.udacity.com/questions/74595
   evaluateAnswer = () => {
-    const formatGuess = this.state.guess.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").toLowerCase()
-    const answerArray = this.state.currentQuestion.answer.toLowerCase().split(' ');
-    return answerArray.includes(formatGuess)
+      const formatGuess = this.state.guess.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").toLowerCase()
+      const answerArray = this.state.currentQuestion.answer.replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g,"").toLowerCase();
+      if (answerArray == formatGuess) { return true }
+      else { return false }
   }
 
   renderCorrectAnswer(){
@@ -164,7 +173,6 @@ class QuizView extends Component {
           </div>
         )
   }
-
 
   render() {
     return this.state.quizCategory

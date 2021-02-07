@@ -23,6 +23,7 @@ class QuestionView extends Component {
 
   getQuestions = () => {
     $.ajax({
+      //url: this.state.totalQuestions % 10 === 1 ? `/questions?page=${this.state.page}`,
       url: `/questions?page=${this.state.page}`, //TODO: update request URL
       type: "GET",
       success: (result) => {
@@ -78,7 +79,7 @@ class QuestionView extends Component {
 
   submitSearch = (searchTerm) => {
     $.ajax({
-      url: `/questions`, //TODO: update request URL
+      url: `/questions/search`, //TODO: update request URL
       type: "POST",
       dataType: 'json',
       contentType: 'application/json',
@@ -150,7 +151,6 @@ class QuestionView extends Component {
             {this.createPagination()}
           </div>
         </div>
-
       </div>
     );
   }
