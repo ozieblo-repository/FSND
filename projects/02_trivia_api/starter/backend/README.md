@@ -383,3 +383,17 @@ createdb trivia_test
 psql trivia_test < trivia.psql
 python test_flaskr.py
 ```
+
+## Udacity Knowledge
+- https://knowledge.udacity.com/questions/413252 | Delete the sample route after completing the TODOs?
+- https://knowledge.udacity.com/questions/378076 | Flask-CORS @app.after_request
+- https://knowledge.udacity.com/questions/119096 | @app.route('/categories')
+- https://knowledge.udacity.com/questions/233578 | @app.route('/categories')
+- https://knowledge.udacity.com/questions/103865 | @app.route('/questions')
+- https://knowledge.udacity.com/questions/125664 | @app.route('/questions')
+- https://knowledge.udacity.com/questions/309862 | @app.route('/questions')
+- https://knowledge.udacity.com/questions/439603 | @app.route('/questions/<int:question_id>', methods=['DELETE'])
+- https://knowledge.udacity.com/questions/336412 | @app.route('/questions/search', methods=['POST'])
+- https://knowledge.udacity.com/questions/421873 | @app.route('/categories/<int:id>/questions')
+- https://knowledge.udacity.com/questions/58505 | @app.route('/quizzes', methods=['POST'])
+

@@ -13,16 +13,12 @@ def create_app(test_config=None):
   app = Flask(__name__)
   setup_db(app)
   CORS(app)
-  
-  # https://knowledge.udacity.com/questions/413252
 
   cors = CORS(app, resources={r"*": {"origins": "*"}})
 
   '''
   after_request decorator to set Access-Control-Allow
   '''
-
-  # https://knowledge.udacity.com/questions/378076
 
   @app.after_request
   def after_request(response):
@@ -39,16 +35,8 @@ def create_app(test_config=None):
   an endpoint to handle GET requests for all available categories.
   '''
 
-  # https://knowledge.udacity.com/questions/119096
-  # https://knowledge.udacity.com/questions/233578
-
   @app.route('/categories')
   def get_categories():
-
-      page = request.args.get('page', 1, type=int)
-
-      start = (page - 1) * 10
-      end = start + 10
 
       categories = Category.query.all()
 
@@ -113,8 +101,6 @@ def create_app(test_config=None):
   '''
   an endpoint to DELETE question using a question ID.
   '''
-
-  # https://knowledge.udacity.com/questions/439603
 
   @app.route('/questions/<int:question_id>', methods=['DELETE'])
   def delete_specific_question(question_id):
@@ -185,8 +171,6 @@ def create_app(test_config=None):
   is a substring of the question. 
   '''
 
-  # https://knowledge.udacity.com/questions/336412
-
   @app.route('/questions/search', methods=['POST'])
   def search_questions():
 
@@ -208,8 +192,6 @@ def create_app(test_config=None):
   '''
   GET endpoint to get questions based on category. 
   '''
-
-  # https://knowledge.udacity.com/questions/421873
 
   @app.route('/categories/<int:id>/questions')
   def get_questions_by_category(id):
@@ -234,8 +216,6 @@ def create_app(test_config=None):
   and return a random questions within the given category, 
   if provided, and that is not one of the previous questions. 
   '''
-
-  # https://knowledge.udacity.com/questions/58505
 
   @app.route('/quizzes', methods=['POST'])
   def play_quiz_question():
