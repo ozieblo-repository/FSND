@@ -95,9 +95,6 @@ def edit_drinks(jwt, id):
         data = dict(request.form or request.json or request.data)
         drink = Drink.query.filter(Drink.id == id).one_or_none()
         if drink:
-            drink.title = data.get('title') if data.get('title') else drink.title
-            recipe = data.get('recipe') if data.get('recipe') else drink.recipe
-            drink.recipe = recipe if type(recipe) == str else json.dumps(recipe)
 
             if data.get('title'): drink.title = data.get('title')
 

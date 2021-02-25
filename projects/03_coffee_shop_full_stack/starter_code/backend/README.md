@@ -1,20 +1,14 @@
 # Coffee Shop Backend
 
-## Getting Started
-
 ### Installing Dependencies
 
 #### Python 3.7
 
 Follow instructions to install the latest version of python for your platform in the [python docs](https://docs.python.org/3/using/unix.html#getting-and-installing-the-latest-version-of-python)
 
-#### Virtual Enviornment
-
-We recommend working within a virtual environment whenever using Python for projects. This keeps your dependencies for each project separate and organaized. Instructions for setting up a virual enviornment for your platform can be found in the [python docs](https://packaging.python.org/guides/installing-using-pip-and-virtual-environments/)
-
 #### PIP Dependencies
 
-Once you have your virtual environment setup and running, install dependencies by naviging to the `/backend` directory and running:
+Install dependencies by naviging to the `/backend` directory and running:
 
 ```bash
 pip install -r requirements.txt
@@ -48,6 +42,13 @@ flask run --reload
 
 The `--reload` flag will detect file changes and restart the server automatically.
 
+To kill address already in use if needed:
+
+```bash
+ps -fA | grep python
+kill <id>
+```
+
 ## Tasks
 
 ### Setup Auth0
@@ -76,10 +77,8 @@ The `--reload` flag will detect file changes and restart the server automaticall
     - Right-clicking the collection folder for barista and manager, navigate to the authorization tab, and including the JWT in the token field (you should have noted these JWTs).
     - Run the collection and correct any errors.
     - Export the collection overwriting the one we've included so that we have your proper JWTs during review!
-
-### Implement The Server
-
-There are `@TODO` comments throughout the `./backend/src`. We recommend tackling the files in order and from top to bottom:
-
-1. `./src/auth/auth.py`
-2. `./src/api.py`
+    
+### Auth0 Authorize Link
+```
+https://{{YOUR_DOMAIN}}/authorize?audience={{API_IDENTIFIER}}&response_type=token&client_id={{YOUR_CLIENT_ID}}&redirect_uri={{YOUR_CALLBACK_URI}}
+```
