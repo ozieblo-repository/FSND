@@ -5,8 +5,7 @@ from flask import (Flask,
                    abort)
 from sqlalchemy import exc
 import json
-from flask_cors import (CORS,
-                        cross_origin)
+from flask_cors import CORS
 
 from .database.models import (db_drop_and_create_all,
                               setup_db,
@@ -16,8 +15,7 @@ from .auth.auth import (AuthError,
 
 app = Flask(__name__)
 setup_db(app)
-cors = CORS(app)
-app.config['CORS_HEADERS'] = 'Content-Type'
+CORS(app)
 
 '''
 !! NOTE THE LINE BELOW MUST BE UNCOMMENTED ON FIRST RUN
@@ -29,10 +27,10 @@ GET /drinks
 public endpoint, fetches all drinks with a short description;
 '''
 @app.route('/drinks')
-@cross_origin()
 def get_drinks():
     try:
         drinks_short_data = [drink.short() for drink in Drink.query.all()]
+        if len(drinks_short_data) == 0: drinks_short_data = []
         return json.dumps({'success': True,
                            'drinks': drinks_short_data}), 200
     except:
@@ -44,11 +42,14 @@ GET /drinks-detail
 fetches all drinks with a long description;
 '''
 @app.route('/drinks-detail')
-@requires_auth('get:drinks-details')
-@cross_origin()
+@requires_auth('get:drinks-detail')
+#@cross_origin()
 def get_drinks_detailed(jwt):
     try:
         drinks_long_data = [drink.long() for drink in Drink.query.all()]
+
+        if len(drinks_long_data) == 0: drink_long_data = []
+
         return json.dumps({'success': True,
                            'drinks': drinks_long_data}), 200
     except:
@@ -62,22 +63,21 @@ insert an array containing the newly created drink data
 @app.route('/drinks',
            methods=['POST'])
 @requires_auth('post:drinks')
-@cross_origin()
 def add_drink(jwt):
 
-    body = request.get_json()
-
-    if body is None: abort(422)
-
     try:
-        title = body.get('title')
-        recipe = json.dumps(body.get('recipe'))
-        drink = Drink(title = title,
-                      recipe = recipe)
+        body = request.get_json()
+
+        if body.get('title') is None: abort(422)
+
+        drink = Drink(title=body.get('title'),
+                      recipe=json.dumps(body.get('recipe')))
         drink.insert()
-        drink_long_data = drink.long()
-        return json.dumps({'success': True,
-                           'drink': drink_long_data}), 200
+        new_drink = Drink.query.filter_by(id=drink.id).first()
+
+        return jsonify({"success": True,
+                        "drinks": [new_drink.long()]}), 200
+
     except:
         return json.dumps({'success': False,
                            'error': "An error occurred during drink data insertion"}), 500
@@ -89,7 +89,6 @@ update drink data if it exists
 @app.route('/drinks/<id>',
            methods=['PATCH'])
 @requires_auth('patch:drinks')
-@cross_origin()
 def edit_drinks(jwt, id):
     try:
         data = dict(request.form or request.json or request.data)
@@ -105,7 +104,9 @@ def edit_drinks(jwt, id):
             else: drink.recipe = json.dumps(recipe)
 
             drink.update()
+
             drink_long_data = [drink.long()]
+
             return json.dumps({'success': True,
                                'drinks': drink_long_data}), 200
         else:
@@ -122,7 +123,6 @@ remove drink data
 @app.route('/drinks/<id>',
            methods=['DELETE'])
 @requires_auth('patch:drinks')
-@cross_origin()
 def delete_drink(jwt, id):
     try:
         drink = Drink.query.filter(Drink.id == id).one_or_none()
