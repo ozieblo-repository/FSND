@@ -16,6 +16,8 @@ pip install -r requirements.txt
 
 This will install all of the required packages we selected within the `requirements.txt` file.
 
+> Note: https://stackoverflow.com/questions/25594893/how-to-enable-cors-in-flask
+
 ##### Key Dependencies
 
 - [Flask](http://flask.pocoo.org/)  is a lightweight backend microservices framework. Flask is required to handle requests and responses.
@@ -70,7 +72,7 @@ kill <id>
         - can `get:drinks-detail`
     - Manager
         - can perform all actions
-7. Test your endpoints with [Postman](https://getpostman.com). 
+7. Test your endpoints with [Postman](https://getpostman.com) & [HTTP Status types](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status). 
     - Register 2 users - assign the Barista role to one and Manager role to the other.
     - Sign into each account and make note of the JWT.
     - Import the postman collection `./starter_code/backend/udacity-fsnd-udaspicelatte.postman_collection.json`

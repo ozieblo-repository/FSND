@@ -2,17 +2,47 @@
 
 ## Getting Setup
 
-> _tip_: this frontend is designed to work with [Flask-based Backend](../backend). It is recommended you stand up the backend first, test using Postman, and then the frontend should integrate smoothly.
-
 ### Installing Dependencies
 
 #### Installing Node and NPM
 
 This project depends on Nodejs and Node Package Manager (NPM). Before continuing, you must download and install Node (the download includes NPM) from [https://nodejs.com/en/download](https://nodejs.org/en/download/).
+> Note: https://stackoverflow.com/questions/16904658/node-version-manager-install-nvm-command-not-found
 
 #### Installing Ionic Cli
 
-The Ionic Command Line Interface is required to serve and build the frontend. Instructions for installing the CLI  is in the [Ionic Framework Docs](https://ionicframework.com/docs/installation/cli).
+The Ionic Command Line Interface is required to serve and build the frontend. Instructions for installing the CLI is in the [Ionic Framework Docs](https://ionicframework.com/docs/installation/cli).
+> Note: https://knowledge.udacity.com/questions/382716
+
+
+```
+to proper install ionic:
+
+[...]
+4. nvm ls-remote
+5. nvm install 12.10.0
+6. npm install -g cordova
+7. npm install -g ionic
+8. npm install -g @angular/cli
+9. npm install --save-dev @angular-devkit/build-angular
+10. ionic -v
+
+common issues:
+
+The ng was not found, just run:
+
+npm install -g angular-cli
+
+If node-sass not found:
+
+npm install --save-dev node-sass
+
+The specified command run is invalid. For available options, see `ng help`. [ERROR] ng has unexpectedly closed (exit code 1).
+
+npm install @ionic/app-scripts@latest --save-dev
+ionic repair
+```
+
 
 #### Installing project dependencies
 
@@ -21,8 +51,6 @@ This project uses NPM to manage software dependencies. NPM Relies on the package
 ```bash
 npm install
 ```
-
->_tip_: **npm i** is shorthand for **npm install**
 
 ## Required Tasks
 
