@@ -9,11 +9,13 @@
 This project depends on Nodejs and Node Package Manager (NPM). Before continuing, you must download and install Node (the download includes NPM) from [https://nodejs.com/en/download](https://nodejs.org/en/download/).
 > Note: https://stackoverflow.com/questions/16904658/node-version-manager-install-nvm-command-not-found
 
-#### Installing Ionic Cli
+#### Installing Ionic Cli and project dependencies
 
 The Ionic Command Line Interface is required to serve and build the frontend. Instructions for installing the CLI is in the [Ionic Framework Docs](https://ionicframework.com/docs/installation/cli).
-> Note: https://knowledge.udacity.com/questions/382716
 
+This project uses NPM to manage software dependencies. NPM Relies on the package.json file located in the `frontend` directory of this repository.
+
+> Note: https://knowledge.udacity.com/questions/382716
 
 ```
 to proper install ionic:
@@ -41,15 +43,6 @@ The specified command run is invalid. For available options, see `ng help`. [ERR
 
 npm install @ionic/app-scripts@latest --save-dev
 ionic repair
-```
-
-
-#### Installing project dependencies
-
-This project uses NPM to manage software dependencies. NPM Relies on the package.json file located in the `frontend` directory of this repository. After cloning, open your terminal and run:
-
-```bash
-npm install
 ```
 
 ## Required Tasks

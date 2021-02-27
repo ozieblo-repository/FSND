@@ -15,7 +15,14 @@ from .auth.auth import (AuthError,
 
 app = Flask(__name__)
 setup_db(app)
-CORS(app)
+CORS(app, resources={r"*": {"origins": "*"}})
+
+@app.after_request
+def after_request(response):
+    response.headers.add('Access-Control-Allow-Headers', 'Content-Type,Authorization,true')
+    response.headers.add('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,PATCH,OPTIONS')
+    response.headers.add('Access-Control-Allow-Origin', '*')
+    return response
 
 '''
 !! NOTE THE LINE BELOW MUST BE UNCOMMENTED ON FIRST RUN
@@ -43,12 +50,11 @@ fetches all drinks with a long description;
 '''
 @app.route('/drinks-detail')
 @requires_auth('get:drinks-detail')
-#@cross_origin()
 def get_drinks_detailed(jwt):
     try:
         drinks_long_data = [drink.long() for drink in Drink.query.all()]
 
-        if len(drinks_long_data) == 0: drink_long_data = []
+        if len(drinks_long_data) == 0: drinks_long_data = []
 
         return json.dumps({'success': True,
                            'drinks': drinks_long_data}), 200
