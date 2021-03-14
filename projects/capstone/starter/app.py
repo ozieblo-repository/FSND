@@ -18,10 +18,6 @@ def create_app(test_config=None):
 
   cors = CORS(app, resources={r"*": {"origins": "*"}})
 
-  return app
-
-APP = create_app()
-
 
 #----------------------------------------------------------------------------#
 # Controllers.
@@ -60,6 +56,10 @@ APP = create_app()
       return jsonify({"success": False,
                       "error": 500,
                       "message": "Internal server error"}), 500
+
+  return app
+
+APP = create_app()
 
 #----------------------------------------------------------------------------#
 # Launch.
