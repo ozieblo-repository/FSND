@@ -3,7 +3,15 @@ from flask_sqlalchemy import SQLAlchemy
 import json
 from datetime import datetime
 
-database_path = os.environ['DATABASE_URL']
+#database_path = os.environ['DATABASE_URL']
+
+
+
+database_name = "herok"
+database_path = "postgres://{}/{}".format('localhost:5432', database_name)
+
+
+
 
 db = SQLAlchemy()
 
@@ -134,5 +142,3 @@ class Questions(db.Model):
             'answer': self.answer,
             'fullSentence': self.fullSentence
         }
-
-#db.create_all()
