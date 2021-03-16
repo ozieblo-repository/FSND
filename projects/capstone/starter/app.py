@@ -3,9 +3,16 @@
 #----------------------------------------------------------------------------#
 
 import os
-from flask import Flask, request, abort, jsonify
+from flask import Flask, request, abort, jsonify, render_template, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
+
+
+
+from flask_bootstrap import Bootstrap
+from flask_wtf import FlaskForm
+from wtforms import StringField, SubmitField
+from wtforms.validators import DataRequired
 
 
 
@@ -15,9 +22,26 @@ from models import setup_db, AuditTrail, Decks, Questions
 # App Config.
 #----------------------------------------------------------------------------#
 
+
+
+# with Flask-WTF, each web form is represented by a class
+# "MainForm" can change; "(FlaskForm)" cannot
+# see the route for "/" and "index.html" to see how this is used
+class MainForm(FlaskForm):
+    name = StringField('Copy below your note:', validators=[DataRequired()])
+    submit = SubmitField('Submit')
+
+
+
 def create_app(test_config=None):
   # create and configure the app
   app = Flask(__name__)
+
+  # Flask-WTF requires an encryption key - the string can be anything
+  app.config['SECRET_KEY'] = 'dummykey'
+
+  # Flask-Bootstrap requires this line
+  Bootstrap(app)
 
   setup_db(app)
 
@@ -26,14 +50,23 @@ def create_app(test_config=None):
   cors = CORS(app, resources={r"*": {"origins": "*"}})
 
 
+
+
 #----------------------------------------------------------------------------#
 # Controllers.
 #----------------------------------------------------------------------------#
 
+# https://python-adv-web-apps.readthedocs.io/en/latest/flask_forms.html
 
-
-
-
+  @app.route('/', methods=['GET', 'POST'])
+  def index():
+      names = ["dummyname1", "dummyname2"]
+      form = MainForm()
+      message = ""
+      return render_template('index.html',
+                             names=names,
+                             form=form,
+                             message=message)
 
 
 #----------------------------------------------------------------------------#
