@@ -11,7 +11,7 @@ from flask_cors import CORS
 
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import StringField, SubmitField, SelectField
 from wtforms.validators import DataRequired
 
 
@@ -28,8 +28,17 @@ from models import setup_db, AuditTrail, Decks, Questions
 # "MainForm" can change; "(FlaskForm)" cannot
 # see the route for "/" and "index.html" to see how this is used
 class MainForm(FlaskForm):
-    name = StringField('Copy below your note:', validators=[DataRequired()])
-    submit = SubmitField('Submit')
+    note = StringField('Copy below your note:', validators=[DataRequired()])
+    deck_name = StringField('Put the deck name:', validators=[DataRequired()])
+    submit = SubmitField('Run')
+
+    deck = SelectField(
+        'User deck(s):',
+        choices=[('cpp', 'C++'), ('py', 'Python'), ('text', 'Plain Text')]
+    )
+
+    show_flashcards = SubmitField('Show flashcards')
+    remove_deck = SubmitField('Remove deck')
 
 
 
@@ -62,7 +71,7 @@ def create_app(test_config=None):
   def index():
       names = ["dummyname1", "dummyname2"]
       form = MainForm()
-      message = ""
+      message = "dummymessage"
       return render_template('index.html',
                              names=names,
                              form=form,
