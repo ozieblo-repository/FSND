@@ -30,15 +30,18 @@ from models import setup_db, AuditTrail, Decks, Questions
 class MainForm(FlaskForm):
     note = StringField('Copy below your note:', validators=[DataRequired()])
     deck_name = StringField('Put the deck name:', validators=[DataRequired()])
-    submit = SubmitField('Run')
+    submit = SubmitField('Create questions')
 
     deck = SelectField(
         'User deck(s):',
         choices=[('cpp', 'C++'), ('py', 'Python'), ('text', 'Plain Text')]
     )
 
-    show_flashcards = SubmitField('Show flashcards')
+    show_flashcards = SubmitField('Show questions')
     remove_deck = SubmitField('Remove deck')
+    edit_deck_name = SubmitField('Edit deck name')
+    export_ANKI_deck = SubmitField('Export ANKI')
+    export_csv = SubmitField('Export .csv')
 
 
 
