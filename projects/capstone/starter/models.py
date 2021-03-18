@@ -110,7 +110,7 @@ class Questions(db.Model):
     questionID = db.Column(db.Integer, primary_key=True)
     question = db.Column(db.String)
     answer = db.Column(db.String)
-    fullSentence = db.Column(db.String)
+    sentence = db.Column(db.String)
 
     auditTrail = db.relationship(AuditTrail,
                                  backref=db.backref('AuditTrail',
@@ -119,10 +119,10 @@ class Questions(db.Model):
     def __repr__(self):
         return f'<Questions {self.questionID} {self.question}>'
 
-    def __init__(self, question, answer, fullSentence):
+    def __init__(self, question, answer, sentence):
         self.question = question
         self.answer = answer
-        self.fullSentence = fullSentence
+        self.sentence = sentence
 
     def insert(self):
         db.session.add(self)
@@ -140,5 +140,5 @@ class Questions(db.Model):
             'questionID': self.questionID,
             'question': self.question,
             'answer': self.answer,
-            'fullSentence': self.fullSentence
+            'sentence': self.sentence
         }
