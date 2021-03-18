@@ -2,45 +2,21 @@ from suggest_gaps import suggest_gaps
 from parse_sentence import parse_sentence
 import pandas as pd
 
-SOURCE_TEXT_PATH = "../tests/note.md" # connect to note form box
-OUTPUT_FILE_NAME = "results.csv" # connect to the database
+OUTPUT_FILE_NAME = "results.csv" #TODO# connect to the database
 
-def md_handler() -> list:
-
-    """
-    Read source .md file and prepare it for the future wrangling.
-    It gives a list of single sentences.
-    """
-
-    file = SOURCE_TEXT_PATH
-
-    try:
-        with open(file,'r') as input_file:
-            input_text_list = []
-            for textline in input_file:
-                input_text_list.append(textline.strip())
-            formatted_text = list((i for i in input_text_list if ("#" not in i) and i))
-            print("Markdown file has been formatted.")
-    except EnvironmentError:
-        print('Error in md_handler. Please check the console.')
-
-    return formatted_text
-
-def main() -> pd.DataFrame:
+def stanza_wrapper(sentences_list) -> pd.DataFrame:
 
     """
-    Create .csv file with gap questions related to source text in .md format.
+    Create .csv file with gap questions related to source text from TextAreaField
     """
-
-    text = md_handler()
 
     output = pd.DataFrame(data = None,
                           columns=("Sentence","Question"))
 
-    n_sentences = len(text)
+    n_sentences = len(sentences_list)
 
     try:
-        for n, sentence in enumerate(text):
+        for n, sentence in enumerate(sentences_list):
             parsed_text = parse_sentence(sentence)
             new_record = suggest_gaps(parsed_text,
                                       sentence)
@@ -62,4 +38,4 @@ def main() -> pd.DataFrame:
         "Error: Cannot create output file. Please check the console."
 
 if __name__ == "__main__":
-    main()
+    stanza_wrapper()
