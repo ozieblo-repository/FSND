@@ -29,7 +29,6 @@ from stanza_wrapper import stanza_wrapper
 import pandas as pd
 
 
-
 #----------------------------------------------------------------------------#
 # Form.
 #----------------------------------------------------------------------------#
@@ -161,6 +160,18 @@ def create_app(test_config=None):
                                              sentence=record['Sentence'])
                     db.session.add(new_question)
 
+                    db.session.flush()
+
+
+
+                    new_record = AuditTrail(username="testUser",
+                                            acceptance=False)
+
+                    new_record.questionID = new_question.id
+                    new_record.deckID = new_deck.id
+
+                    db.session.add(new_record)
+
                 db.session.commit()
 
             except Exception as e:
@@ -171,6 +182,8 @@ def create_app(test_config=None):
                 db.session.close()
 
             if not error_in_insert:
+                jsonify({'success': True,
+                         'message': "Questions successfully created"})
                 flash('Deck ' + request.form['deck_name'] + ' was successfully created!')
                 return redirect(url_for('index'))
             else:

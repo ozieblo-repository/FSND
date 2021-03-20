@@ -11,8 +11,6 @@ setup_db(app) binds a flask application and a SQLAlchemy service
 
 def setup_db(app):
 
-
-
     if config is None:
         app.config.from_object(config.BaseConfig)
     else:
@@ -30,19 +28,18 @@ class AuditTrail(db.Model):
 
     __tablename__ = 'AuditTrail'
 
-    questionID = db.Column(db.Integer, db.ForeignKey('Questions.questionID'), primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
+    questionID = db.Column(db.Integer, db.ForeignKey('Questions.id'))
     username = db.Column(db.String)
-    timestamp = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    deckID = db.Column(db.Integer, db.ForeignKey('Decks.deckID'))
+    timestamp = db.Column(db.DateTime, default=datetime.now())
+    deckID = db.Column(db.Integer, db.ForeignKey('Decks.id'))
     acceptance = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
-        return f'<AuditTrail {self.recordID} {self.timestamp}>'
+        return f'<AuditTrail {self.id} {self.timestamp}>'
 
-    def __init__(self, username, timestamp, deckID, acceptance):
+    def __init__(self, username, acceptance):
         self.username = username
-        self.timestamp = timestamp
-        self.deckID = deckID
         self.acceptance = acceptance
 
     def insert(self):
@@ -58,6 +55,7 @@ class AuditTrail(db.Model):
 
     def format(self):
         return {
+            'id': self.id,
             'questionID': self.questionID,
             'question': self.question,
             'timestamp': self.timestamp,
@@ -69,7 +67,7 @@ class Decks(db.Model):
 
     __tablename__ = 'Decks'
 
-    deckID = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120))
 
     auditTrail = db.relationship(AuditTrail,
@@ -77,7 +75,7 @@ class Decks(db.Model):
                                                     cascade='all, delete'))
 
     def __repr__(self):
-        return f'<Decks {self.deckID} {self.name}>'
+        return f'<Decks {self.id} {self.name}>'
 
     def __init__(self, name):
         self.name = name
@@ -95,7 +93,7 @@ class Decks(db.Model):
 
     def format(self):
         return {
-            'deckID': self.deckID,
+            'id': self.id,
             'name': self.name
         }
 
@@ -103,7 +101,7 @@ class Questions(db.Model):
 
     __tablename__ = 'Questions'
 
-    questionID = db.Column(db.Integer, primary_key=True)
+    id = db.Column(db.Integer, primary_key=True)
     question = db.Column(db.String)
     answer = db.Column(db.String)
     sentence = db.Column(db.String)
@@ -113,7 +111,7 @@ class Questions(db.Model):
                                                     cascade='all, delete'))
 
     def __repr__(self):
-        return f'<Questions {self.questionID} {self.question}>'
+        return f'<Questions {self.id} {self.question}>'
 
     def __init__(self, question, answer, sentence):
         self.question = question
@@ -133,7 +131,7 @@ class Questions(db.Model):
 
     def format(self):
         return {
-            'questionID': self.questionID,
+            'id': self.id,
             'question': self.question,
             'answer': self.answer,
             'sentence': self.sentence
