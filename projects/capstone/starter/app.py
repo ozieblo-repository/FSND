@@ -21,7 +21,8 @@ from models import (db,
                     Decks,
                     Questions)
 from stanza_wrapper import stanza_wrapper
-import pandas as pd
+
+from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
 
 #----------------------------------------------------------------------------#
@@ -35,11 +36,16 @@ class CreateQuestions(FlaskForm):
     deck_name = wtforms.StringField('Put the deck name:', validators=[DataRequired()])
     submit = wtforms.SubmitField('Create questions')
 
+def dropdown_query():
+    return Decks.query
+
+
 class SelectDeck(FlaskForm):
-    deck = wtforms.SelectField('User deck(s):',
-                       choices=[('cpp', 'C++'),
-                                ('py', 'Python'),
-                                ('text', 'Plain Text')])
+    # https://stackoverflow.com/questions/33832940/flask-how-to-populate-select-field-in-wtf-form-when-database-files-is-separate
+    pick_the_deck = QuerySelectField(query_factory=dropdown_query,
+                                         label="Decks:",
+                                         allow_blank=True,
+                                         blank_text="No deck have been created yet!")
 
 # https://stackoverflow.com/questions/49037015/is-posible-to-render-wtf-form-field-with-out-label
 class NoLabelMixin(object):
@@ -50,12 +56,12 @@ class NoLabelMixin(object):
             field_property.label = ""
 
 class MainForm(FlaskForm):
+    # https://dev.to/sampart/combining-multiple-forms-in-flask-wtforms-but-validating-independently-cbm
     create_questions = wtforms.FormField(CreateQuestions)
-    show_questions = wtforms.FormField(SelectDeck)
+    dropdown_value = wtforms.FormField(SelectDeck)
 
 class MainFormNoLabel(NoLabelMixin, MainForm):
     pass
-
 
 # ----------------------------------------------------------------------------#
 # TextAreaField handler.
@@ -122,9 +128,6 @@ def create_app(test_config=None):
     @app.route('/', methods=['POST'])
     def create_deck():
 
-        #TODO:
-        # database route does not accept any url methods, to be fixed
-
         form = MainFormNoLabel()
 
         # insert for the Stanza
@@ -134,14 +137,12 @@ def create_app(test_config=None):
 
         sentences_list = text_area_field_handler(note)
 
-        stanza_wrapper(sentences_list)
-
         # assign output from the Stanza into database
-        stanza_output = pd.read_csv("results.csv")
+        stanza_output = stanza_wrapper(sentences_list)
 
         if form.validate():
             flash(form.errors)
-            return redirect(url_for('/'))
+            return redirect(url_for('/')) ###### !!!!
 
         else:
             error_in_insert = False
@@ -155,7 +156,6 @@ def create_app(test_config=None):
                                              answer=record['Answer'],
                                              sentence=record['Sentence'])
                     db.session.add(new_question)
-
                     db.session.flush()
 
                     new_record = AuditTrail(username="testUser",
@@ -166,6 +166,7 @@ def create_app(test_config=None):
 
                     db.session.add(new_record)
 
+                print("muminek")
                 db.session.commit()
 
             except Exception as e:
@@ -180,6 +181,36 @@ def create_app(test_config=None):
             else:
                 print("Error in create_deck()")
                 abort(500)
+
+
+    # @app.route('/delete', methods=['GET'])
+    # def delete_deck():
+    #     form = MainFormNoLabel()
+    #     return render_template(form=form)
+
+    # @app.route('/delete', methods=['POST'])
+    # def remove_deck():
+
+    #     form = MainFormNoLabel()
+
+    #     try:
+    #         deck_name = form.dropdown_value.pick_the_deck.data.strip()
+    #         deck_to_remove = Decks.query.filter(Decks.name == deck_name).one_or_none()
+    #         records_to_remove = AuditTrail.query.filter(AuditTrail.deckID == deck_to_remove.id).all()
+    #         questions_to_remove = Questions.query.filter(Questions.deckID in records_to_remove.questionID).all()
+
+    #         deck_to_remove.delete()
+    #         questions_to_remove.delete()
+    #         records_to_remove.delete()
+
+    #     except:
+    #         db.session.rollback()
+    #     finally:
+    #        db.session.close()
+
+    #     return render_template('index.html')  return redirect(url_for('/')) ###### !!!!
+
+
 
     #----------------------------------------------------------------------------#
     # Error handlers for expected errors.
@@ -218,4 +249,10 @@ APP = create_app()
 #----------------------------------------------------------------------------#
 
 if __name__ == '__main__':
-    APP.run(host='0.0.0.0', port=8080, debug=True)
+    APP.run(host='0.0.0.0',
+            port=8080,
+            debug=True)
+
+# https://bitadj.medium.com/completely-uninstall-and-reinstall-psql-on-osx-551390904b86
+# https://medium.com/@richardgong/how-to-upgrade-postgres-db-on-mac-homebrew-99516db3e57f
+# https://stackoverflow.com/questions/61899041/how-to-fix-the-error-permission-denied-apply2files-usr-local-lib-node-modul

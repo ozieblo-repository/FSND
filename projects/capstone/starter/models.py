@@ -13,13 +13,13 @@ db = SQLAlchemy()
 
 class AuditTrail(db.Model):
 
-    __tablename__ = 'AuditTrail'
+    __tablename__ = 'auditTrail'
 
     id = db.Column(db.Integer, primary_key=True)
-    questionID = db.Column(db.Integer, db.ForeignKey('Questions.id'))
+    questionID = db.Column(db.Integer, db.ForeignKey('questions.id'))
     username = db.Column(db.String)
     timestamp = db.Column(db.DateTime, default=datetime.now())
-    deckID = db.Column(db.Integer, db.ForeignKey('Decks.id'))
+    deckID = db.Column(db.Integer, db.ForeignKey('decks.id'))
     acceptance = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
@@ -52,17 +52,17 @@ class AuditTrail(db.Model):
 
 class Decks(db.Model):
 
-    __tablename__ = 'Decks'
+    __tablename__ = 'decks'
 
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120))
 
     auditTrail = db.relationship(AuditTrail,
-                                 backref=db.backref('Decks',
+                                 backref=db.backref('decks',
                                                     cascade='all, delete'))
 
     def __repr__(self):
-        return f'<Decks {self.id} {self.name}>'
+        return f'{self.name}'
 
     def __init__(self, name):
         self.name = name
@@ -86,7 +86,7 @@ class Decks(db.Model):
 
 class Questions(db.Model):
 
-    __tablename__ = 'Questions'
+    __tablename__ = 'questions'
 
     id = db.Column(db.Integer, primary_key=True)
     question = db.Column(db.String)
@@ -94,7 +94,7 @@ class Questions(db.Model):
     sentence = db.Column(db.String)
 
     auditTrail = db.relationship(AuditTrail,
-                                 backref=db.backref('Questions',
+                                 backref=db.backref('questions',
                                                     cascade='all, delete'))
 
     def __repr__(self):
