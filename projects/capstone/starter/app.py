@@ -3,7 +3,6 @@
 #----------------------------------------------------------------------------#
 
 import os
-
 from flask import (Flask,
                    request,
                    abort,
@@ -12,14 +11,10 @@ from flask import (Flask,
                    redirect,
                    url_for,
                    flash)
-from flask_sqlalchemy import SQLAlchemy
 from flask_cors import CORS
 from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
-from wtforms import (StringField,
-                     SubmitField,
-                     SelectField,
-                     TextAreaField)
+import wtforms
 from wtforms.validators import DataRequired
 from models import (db,
                     AuditTrail,
@@ -30,32 +25,25 @@ import pandas as pd
 
 
 #----------------------------------------------------------------------------#
-# Form.
+# Forms.
 #----------------------------------------------------------------------------#
 
+class CreateQuestions(FlaskForm):
+    # https://wtforms.readthedocs.io/en/2.3.x/fields/
 
-# with Flask-WTF, each web form is represented by a class
-# "MainForm" can change; "(FlaskForm)" cannot
-# see the route for "/" and "index.html" to see how this is used
+    note = wtforms.TextAreaField('Copy below your note:', validators=[DataRequired()])
+    deck_name = wtforms.StringField('Put the deck name:', validators=[DataRequired()])
+    submit = wtforms.SubmitField('Create questions')
+
+class SelectDeck(FlaskForm):
+    deck = wtforms.SelectField('User deck(s):',
+                       choices=[('cpp', 'C++'),
+                                ('py', 'Python'),
+                                ('text', 'Plain Text')])
+
 class MainForm(FlaskForm):
-
-  # https://wtforms.readthedocs.io/en/2.3.x/fields/
-
-    note = TextAreaField('Copy below your note:', validators=[DataRequired()])
-    deck_name = StringField('Put the deck name:', validators=[DataRequired()])
-    submit = SubmitField('Create questions')
-
-    deck = SelectField('User deck(s):',
-                     choices=[('cpp', 'C++'),
-                              ('py', 'Python'),
-                              ('text', 'Plain Text')])
-
-    show_flashcards = SubmitField('Show questions')
-    remove_deck = SubmitField('Remove deck')
-    edit_deck_name = SubmitField('Edit deck name')
-    export_ANKI_deck = SubmitField('Export ANKI')
-    export_csv = SubmitField('Export .csv')
-
+    create_questions = wtforms.FormField(CreateQuestions)
+    show_questions = wtforms.FormField(SelectDeck)
 
 
 # ----------------------------------------------------------------------------#
@@ -92,15 +80,12 @@ def create_app(test_config=None):
 
     app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 
-
-
     # Flask-Bootstrap requires this line
     Bootstrap(app)
 
-    #setup_db(app)
-
     db.app = app
     db.init_app(app)
+    db.drop_all()
     db.create_all()
 
     CORS(app)
@@ -132,20 +117,20 @@ def create_app(test_config=None):
         form = MainForm()
 
         # insert for the Stanza
-        note = form.note.data.strip()
+        note = form.create_questions.note.data.strip()
 
-        deck_name = form.deck_name.data.strip()
+        deck_name = form.create_questions.deck_name.data.strip()
 
         sentences_list = text_area_field_handler(note)
 
         stanza_wrapper(sentences_list)
 
         # assign output from the Stanza into database
-        stanza_output = pd.read_csv("results.csv")  # TODO:#
+        stanza_output = pd.read_csv("results.csv")
 
         if form.validate():
             flash(form.errors)
-            return redirect(url_for('create_deck'))
+            return redirect(url_for('/'))
 
         else:
             error_in_insert = False
@@ -161,8 +146,6 @@ def create_app(test_config=None):
                     db.session.add(new_question)
 
                     db.session.flush()
-
-
 
                     new_record = AuditTrail(username="testUser",
                                             acceptance=False)
@@ -182,12 +165,8 @@ def create_app(test_config=None):
                 db.session.close()
 
             if not error_in_insert:
-                jsonify({'success': True,
-                         'message': "Questions successfully created"})
-                flash('Deck ' + request.form['deck_name'] + ' was successfully created!')
                 return redirect(url_for('index'))
             else:
-                flash('An error occurred. Deck ' + deck_name + ' could not be created.')
                 print("Error in create_deck()")
                 abort(500)
 

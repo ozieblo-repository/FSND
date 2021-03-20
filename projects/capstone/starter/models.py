@@ -5,20 +5,7 @@ from datetime import datetime
 
 
 db = SQLAlchemy()
-'''
-setup_db(app) binds a flask application and a SQLAlchemy service
-'''
 
-def setup_db(app):
-
-    if config is None:
-        app.config.from_object(config.BaseConfig)
-    else:
-        app.config.from_object(config)
-
-    db.app = app
-    db.init_app(app)
-    db.create_all()
 
 #----------------------------------------------------------------------------#
 # Models.
