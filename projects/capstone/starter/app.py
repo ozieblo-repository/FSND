@@ -41,9 +41,20 @@ class SelectDeck(FlaskForm):
                                 ('py', 'Python'),
                                 ('text', 'Plain Text')])
 
+# https://stackoverflow.com/questions/49037015/is-posible-to-render-wtf-form-field-with-out-label
+class NoLabelMixin(object):
+    def __init__(self, *args, **kwargs):
+        super(NoLabelMixin, self).__init__(*args, **kwargs)
+        for field_name in self._fields:
+            field_property = getattr(self, field_name)
+            field_property.label = ""
+
 class MainForm(FlaskForm):
     create_questions = wtforms.FormField(CreateQuestions)
     show_questions = wtforms.FormField(SelectDeck)
+
+class MainFormNoLabel(NoLabelMixin, MainForm):
+    pass
 
 
 # ----------------------------------------------------------------------------#
@@ -101,7 +112,7 @@ def create_app(test_config=None):
     @app.route('/', methods=['GET'])
     def index():
         names = ["dummyname1", "dummyname2"]
-        form = MainForm()
+        form = MainFormNoLabel()
         message = "dummymessage"
         return render_template('index.html',
                                names=names,
@@ -114,7 +125,7 @@ def create_app(test_config=None):
         #TODO:
         # database route does not accept any url methods, to be fixed
 
-        form = MainForm()
+        form = MainFormNoLabel()
 
         # insert for the Stanza
         note = form.create_questions.note.data.strip()
