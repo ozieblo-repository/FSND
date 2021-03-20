@@ -73,7 +73,7 @@ class Decks(db.Model):
     name = db.Column(db.String(120))
 
     auditTrail = db.relationship(AuditTrail,
-                                 backref=db.backref('AuditTrail',
+                                 backref=db.backref('Decks',
                                                     cascade='all, delete'))
 
     def __repr__(self):
@@ -109,7 +109,7 @@ class Questions(db.Model):
     sentence = db.Column(db.String)
 
     auditTrail = db.relationship(AuditTrail,
-                                 backref=db.backref('AuditTrail',
+                                 backref=db.backref('Questions',
                                                     cascade='all, delete'))
 
     def __repr__(self):
