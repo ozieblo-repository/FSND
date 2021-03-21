@@ -166,7 +166,6 @@ def create_app(test_config=None):
 
                     db.session.add(new_record)
 
-                print("muminek")
                 db.session.commit()
 
             except Exception as e:
@@ -183,32 +182,74 @@ def create_app(test_config=None):
                 abort(500)
 
 
-    # @app.route('/delete', methods=['GET'])
-    # def delete_deck():
-    #     form = MainFormNoLabel()
-    #     return render_template(form=form)
+    #@app.route('/delete', methods=['GET'])
+    #def delete_deck():
+    #    form = MainFormNoLabel()
+    #    return render_template(form=form)
 
-    # @app.route('/delete', methods=['POST'])
-    # def remove_deck():
+    # background process happening without any refreshing
+    @app.route('/background_process_test')
+    def background_process_test():
+        print("Hello")
 
-    #     form = MainFormNoLabel()
+        try:
+            form = MainFormNoLabel()
 
-    #     try:
-    #         deck_name = form.dropdown_value.pick_the_deck.data.strip()
-    #         deck_to_remove = Decks.query.filter(Decks.name == deck_name).one_or_none()
-    #         records_to_remove = AuditTrail.query.filter(AuditTrail.deckID == deck_to_remove.id).all()
-    #         questions_to_remove = Questions.query.filter(Questions.deckID in records_to_remove.questionID).all()
+            print(form.dropdown_value)
 
-    #         deck_to_remove.delete()
-    #         questions_to_remove.delete()
-    #         records_to_remove.delete()
 
-    #     except:
-    #         db.session.rollback()
-    #     finally:
-    #        db.session.close()
+            if form.dropdown_value.validate():
+                print(''.format((form.dropdown_value.pick_the_deck.data)))
 
-    #     return render_template('index.html')  return redirect(url_for('/')) ###### !!!!
+
+
+
+            deck_to_remove = Decks.query.filter(Decks.name == deck_name).one_or_none()
+            records_to_remove = AuditTrail.query.filter(AuditTrail.deckID == deck_to_remove.id).all()
+            questions_to_remove = Questions.query.filter(Questions.deckID in records_to_remove.questionID).all()
+
+            print(deck_to_remove)
+            print(questions_to_remove)
+            print(records_to_remove)
+
+            deck_to_remove.delete()
+            questions_to_remove.delete()
+            records_to_remove.delete()
+
+            print("Kabanos")
+
+        except:
+            db.session.rollback()
+        finally:
+            db.session.close()
+
+        print("Goodbye")
+
+        return ("nothing")
+
+
+
+    @app.route('/delete', methods=['POST'])
+    def remove_deck():
+
+        form = MainFormNoLabel()
+
+        try:
+            deck_name = form.dropdown_value.pick_the_deck.data.strip()
+            deck_to_remove = Decks.query.filter(Decks.name == deck_name).one_or_none()
+            records_to_remove = AuditTrail.query.filter(AuditTrail.deckID == deck_to_remove.id).all()
+            questions_to_remove = Questions.query.filter(Questions.deckID in records_to_remove.questionID).all()
+
+            deck_to_remove.delete()
+            questions_to_remove.delete()
+            records_to_remove.delete()
+
+        except:
+            db.session.rollback()
+        finally:
+           db.session.close()
+
+        return redirect(url_for('/'))
 
 
 
