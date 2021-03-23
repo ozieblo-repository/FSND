@@ -16,38 +16,37 @@ from flask_bootstrap import Bootstrap
 from flask_wtf import FlaskForm
 import wtforms
 from wtforms.validators import DataRequired
-from models import (db,
-                    AuditTrail,
-                    Decks,
-                    Questions)
-from stanza_wrapper import stanza_wrapper
-
+from .models import (db,
+                     AuditTrail,
+                     Decks,
+                     Questions)
+from .stanza_wrapper import stanza_wrapper
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
-
 
 #----------------------------------------------------------------------------#
 # Forms.
 #----------------------------------------------------------------------------#
 
 class CreateQuestions(FlaskForm):
-    # https://wtforms.readthedocs.io/en/2.3.x/fields/
-
+    #### https://wtforms.readthedocs.io/en/2.3.x/fields/
     note = wtforms.TextAreaField('Copy below your note:', validators=[DataRequired()])
     deck_name = wtforms.StringField('Put the deck name:', validators=[DataRequired()])
-    submit = wtforms.SubmitField('Create questions')
+
+class SubmitNote(FlaskForm):
+    submit = wtforms.SubmitField()
 
 def dropdown_query():
     return Decks.query
 
-
 class SelectDeck(FlaskForm):
-    # https://stackoverflow.com/questions/33832940/flask-how-to-populate-select-field-in-wtf-form-when-database-files-is-separate
+    #### https://stackoverflow.com/questions/33832940/flask-how-to-populate-select-field-in-wtf-form-when-database-files-is-separate
     pick_the_deck = QuerySelectField(query_factory=dropdown_query,
-                                         label="Decks:",
-                                         allow_blank=True,
-                                         blank_text="No deck have been created yet!")
+                                     label="Decks:",
+                                     allow_blank=True,
+                                     blank_text="Select the deck",
+                                     id="removedeck" )
 
-# https://stackoverflow.com/questions/49037015/is-posible-to-render-wtf-form-field-with-out-label
+#### https://stackoverflow.com/questions/49037015/is-posible-to-render-wtf-form-field-with-out-label
 class NoLabelMixin(object):
     def __init__(self, *args, **kwargs):
         super(NoLabelMixin, self).__init__(*args, **kwargs)
@@ -56,9 +55,9 @@ class NoLabelMixin(object):
             field_property.label = ""
 
 class MainForm(FlaskForm):
-    # https://dev.to/sampart/combining-multiple-forms-in-flask-wtforms-but-validating-independently-cbm
+    #### https://dev.to/sampart/combining-multiple-forms-in-flask-wtforms-but-validating-independently-cbm
     create_questions = wtforms.FormField(CreateQuestions)
-    dropdown_value = wtforms.FormField(SelectDeck)
+    submit_note = wtforms.FormField(SubmitNote)
 
 class MainFormNoLabel(NoLabelMixin, MainForm):
     pass
@@ -81,7 +80,6 @@ def text_area_field_handler(text_area_field) -> list:
     except:
         print("Error in text_area_field_handler()")
         abort(500)
-
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -113,20 +111,32 @@ def create_app(test_config=None):
     # Controllers.
     #----------------------------------------------------------------------------#
 
-    # https://python-adv-web-apps.readthedocs.io/en/latest/flask_forms.html
+    #### https://python-adv-web-apps.readthedocs.io/en/latest/flask_forms.html
 
     @app.route('/', methods=['GET'])
     def index():
         names = ["dummyname1", "dummyname2"]
         form = MainFormNoLabel()
         message = "dummymessage"
+
+        questions = Questions.query.all()
+
+        auditTrail = AuditTrail.query.all()
+
         return render_template('index.html',
                                names=names,
                                form=form,
-                               message=message)
+                               message=message,
+                               questions=questions,
+                               auditTrail=auditTrail)
+
+    @app.route('/managedecks', methods=['GET'])
+    def managedecks():
+        form = SelectDeck()
+        return render_template('managedecks.html', form=form)
 
     @app.route('/', methods=['POST'])
-    def create_deck():
+    def manage_deck():
 
         form = MainFormNoLabel()
 
@@ -142,7 +152,7 @@ def create_app(test_config=None):
 
         if form.validate():
             flash(form.errors)
-            return redirect(url_for('/')) ###### !!!!
+            return redirect(url_for('/'))
 
         else:
             error_in_insert = False
@@ -158,8 +168,7 @@ def create_app(test_config=None):
                     db.session.add(new_question)
                     db.session.flush()
 
-                    new_record = AuditTrail(username="testUser",
-                                            acceptance=False)
+                    new_record = AuditTrail(username="testUser")
 
                     new_record.questionID = new_question.id
                     new_record.deckID = new_deck.id
@@ -170,7 +179,7 @@ def create_app(test_config=None):
 
             except Exception as e:
                 error_in_insert = True
-                print(f'Exception "{e}" in create_deck()')
+                print(f'Exception "{e}" in manage_deck()')
                 db.session.rollback()
             finally:
                 db.session.close()
@@ -178,80 +187,19 @@ def create_app(test_config=None):
             if not error_in_insert:
                 return redirect(url_for('index'))
             else:
-                print("Error in create_deck()")
+                print("Error in manage_deck()")
                 abort(500)
 
+    @app.route('/deckremove/<deckId>', methods=['DELETE'])
+    def removedeck(deckId):
 
-    #@app.route('/delete', methods=['GET'])
-    #def delete_deck():
-    #    form = MainFormNoLabel()
-    #    return render_template(form=form)
+        deck_to_remove = Decks.query.filter(Decks.id == deckId).one_or_none()
 
-    # background process happening without any refreshing
-    @app.route('/background_process_test')
-    def background_process_test():
-        print("Hello")
+        deck_to_remove.delete()
 
-        try:
-            form = MainFormNoLabel()
-
-            print(form.dropdown_value)
-
-
-            if form.dropdown_value.validate():
-                print(''.format((form.dropdown_value.pick_the_deck.data)))
-
-
-
-
-            deck_to_remove = Decks.query.filter(Decks.name == deck_name).one_or_none()
-            records_to_remove = AuditTrail.query.filter(AuditTrail.deckID == deck_to_remove.id).all()
-            questions_to_remove = Questions.query.filter(Questions.deckID in records_to_remove.questionID).all()
-
-            print(deck_to_remove)
-            print(questions_to_remove)
-            print(records_to_remove)
-
-            deck_to_remove.delete()
-            questions_to_remove.delete()
-            records_to_remove.delete()
-
-            print("Kabanos")
-
-        except:
-            db.session.rollback()
-        finally:
-            db.session.close()
-
-        print("Goodbye")
-
-        return ("nothing")
-
-
-
-    @app.route('/delete', methods=['POST'])
-    def remove_deck():
-
-        form = MainFormNoLabel()
-
-        try:
-            deck_name = form.dropdown_value.pick_the_deck.data.strip()
-            deck_to_remove = Decks.query.filter(Decks.name == deck_name).one_or_none()
-            records_to_remove = AuditTrail.query.filter(AuditTrail.deckID == deck_to_remove.id).all()
-            questions_to_remove = Questions.query.filter(Questions.deckID in records_to_remove.questionID).all()
-
-            deck_to_remove.delete()
-            questions_to_remove.delete()
-            records_to_remove.delete()
-
-        except:
-            db.session.rollback()
-        finally:
-           db.session.close()
-
-        return redirect(url_for('/'))
-
-
+        return jsonify({'success': True,
+                        'deleted': deckId,
+                        'message': "Deck successfully deleted"})
 
     #----------------------------------------------------------------------------#
     # Error handlers for expected errors.
@@ -283,14 +231,14 @@ def create_app(test_config=None):
 
     return app
 
-APP = create_app()
+app = create_app()
 
 #----------------------------------------------------------------------------#
 # Launch.
 #----------------------------------------------------------------------------#
 
 if __name__ == '__main__':
-    APP.run(host='0.0.0.0',
+    app.run(host='0.0.0.0',
             port=8080,
             debug=True)
 

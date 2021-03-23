@@ -8,11 +8,9 @@
 	</style>
 {% endblock %}
 
-
 {% block title %}
 Capstone project
 {% endblock %}
-
 
 {% block content %}
 
@@ -27,13 +25,30 @@ Capstone project
 
       {{ wtf.quick_form(form) }}
 
-      <input type="submit" name="remove_deck" value="remove_deck">
-      <input type="submit" name="edit_deck_name" value="edit_deck_name">
-      <input type="submit" name="export_ANKI" value="export_ANKI">
-      <input type="submit" name="export_csv" value="export_csv">
+      <p></p>
 
+      <ul id="questions" style="list-style: none;">
+        {% for question in questions %}
+        <li>
+          <input class="check-completed" data-id="{{ question.id }}" type="checkbox" {% if question.acceptance %} checked {% endif %} />
+          {{ question.question }}
+          <button class="delete-button" data-id="{{ question.id }}">&cross;</button>
+        </li>
+        {% endfor %}
+      </ul>
 
-      <p class="pt-5"><strong>{{ message }}</strong></p>
+      <script>
+        const deleteBtns = document.querySelectorAll('.delete-button');
+        for (let i = 0; i < deleteBtns.length; i++) {
+          const btn = deleteBtns[i];
+          btn.onclick = function(e) {
+            const questionId = e.target.dataset['id'];
+            fetch('/question/' + questionId, {
+              method: 'DELETE'
+            });
+          }
+        }
+      </script>
 
     </div>
   </div>

@@ -3,9 +3,7 @@ from flask_sqlalchemy import SQLAlchemy
 import json
 from datetime import datetime
 
-
 db = SQLAlchemy()
-
 
 #----------------------------------------------------------------------------#
 # Models.
@@ -15,19 +13,17 @@ class AuditTrail(db.Model):
 
     __tablename__ = 'auditTrail'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id         = db.Column(db.Integer, primary_key=True)
     questionID = db.Column(db.Integer, db.ForeignKey('questions.id'))
-    username = db.Column(db.String)
-    timestamp = db.Column(db.DateTime, default=datetime.now())
-    deckID = db.Column(db.Integer, db.ForeignKey('decks.id'))
-    acceptance = db.Column(db.Boolean, default=False)
+    username   = db.Column(db.String)
+    timestamp  = db.Column(db.DateTime, default=datetime.now())
+    deckID     = db.Column(db.Integer, db.ForeignKey('decks.id'))
 
     def __repr__(self):
         return f'<AuditTrail {self.id} {self.timestamp}>'
 
-    def __init__(self, username, acceptance):
+    def __init__(self, username):
         self.username = username
-        self.acceptance = acceptance
 
     def insert(self):
         db.session.add(self)
@@ -43,18 +39,18 @@ class AuditTrail(db.Model):
     def format(self):
         return {
             'id': self.id,
-            'questionID': self.questionID,
-            'question': self.question,
-            'timestamp': self.timestamp,
-            'deckID': self.deckID,
-            'acceptance': self.acceptance
+            'questionID' : self.questionID,
+            'question'   : self.question,
+            'timestamp'  : self.timestamp,
+            'deckID'     : self.deckID,
+            'acceptance' : self.acceptance
         }
 
 class Decks(db.Model):
 
     __tablename__ = 'decks'
 
-    id = db.Column(db.Integer, primary_key=True)
+    id   = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120))
 
     auditTrail = db.relationship(AuditTrail,
@@ -80,8 +76,8 @@ class Decks(db.Model):
 
     def format(self):
         return {
-            'id': self.id,
-            'name': self.name
+            'id'   : self.id,
+            'name' : self.name
         }
 
 class Questions(db.Model):
@@ -102,7 +98,7 @@ class Questions(db.Model):
 
     def __init__(self, question, answer, sentence):
         self.question = question
-        self.answer = answer
+        self.answer   = answer
         self.sentence = sentence
 
     def insert(self):
@@ -118,8 +114,8 @@ class Questions(db.Model):
 
     def format(self):
         return {
-            'id': self.id,
-            'question': self.question,
-            'answer': self.answer,
-            'sentence': self.sentence
+            'id'       : self.id,
+            'question' : self.question,
+            'answer'   : self.answer,
+            'sentence' : self.sentence
         }
