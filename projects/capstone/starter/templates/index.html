@@ -5,6 +5,24 @@
 {{ super() }}
 	<style>
 		body { background: #e8f1f9; }
+
+		ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        }
+        li {
+          clear: both;
+        }
+        li button {
+          -webkit-appearance: none;
+          border: none;
+          outline: none;
+          float: right;
+          cursor: pointer;
+          font-size: 10px;
+        }
+
 	</style>
 {% endblock %}
 
@@ -30,7 +48,6 @@ Capstone project
       <ul id="questions" style="list-style: none;">
         {% for question in questions %}
         <li>
-          <input class="check-completed" data-id="{{ question.id }}" type="checkbox" {% if question.acceptance %} checked {% endif %} />
           {{ question.question }}
           <button class="delete-button" data-id="{{ question.id }}">&cross;</button>
         </li>
@@ -43,7 +60,7 @@ Capstone project
           const btn = deleteBtns[i];
           btn.onclick = function(e) {
             const questionId = e.target.dataset['id'];
-            fetch('/question/' + questionId, {
+            fetch('/questionremove/' + questionId, {
               method: 'DELETE'
             });
           }

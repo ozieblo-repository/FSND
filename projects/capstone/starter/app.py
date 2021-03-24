@@ -130,11 +130,6 @@ def create_app(test_config=None):
                                questions=questions,
                                auditTrail=auditTrail)
 
-    @app.route('/managedecks', methods=['GET'])
-    def managedecks():
-        form = SelectDeck()
-        return render_template('managedecks.html', form=form)
-
     @app.route('/', methods=['POST'])
     def manage_deck():
 
@@ -189,6 +184,26 @@ def create_app(test_config=None):
             else:
                 print("Error in manage_deck()")
                 abort(500)
+
+    @app.route('/questionremove/<questionId>', methods=['DELETE'])
+    def questionremove(questionId):
+
+        try:
+            question_to_remove = Questions.query.filter(Questions.id == questionId).one_or_none()
+            question_to_remove.delete()
+        except:
+            db.session.rollback()
+        finally:
+            db.session.close()
+
+        return jsonify({'success': True,
+                        'deleted': questionId,
+                        'message': "Question successfully deleted"})
+
+    @app.route('/managedecks', methods=['GET'])
+    def managedecks():
+        form = SelectDeck()
+        return render_template('managedecks.html', form=form)
 
     @app.route('/deckremove/<deckId>', methods=['DELETE'])
     def removedeck(deckId):
