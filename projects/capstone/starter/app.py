@@ -17,8 +17,8 @@ from flask_wtf import FlaskForm
 import wtforms
 from wtforms.validators import DataRequired
 from .models import (db,
-                     AuditTrail,
                      Decks,
+                     AuditTrail,
                      Questions)
 from .stanza_wrapper import stanza_wrapper
 from wtforms.ext.sqlalchemy.fields import QuerySelectField
@@ -81,6 +81,45 @@ def text_area_field_handler(text_area_field) -> list:
         print("Error in text_area_field_handler()")
         abort(500)
 
+def drop_everything():
+    """(On a live db) drops all foreign key constraints before dropping all tables.
+    Workaround for SQLAlchemy not doing DROP ## CASCADE for drop_all()
+    (https://github.com/pallets/flask-sqlalchemy/issues/722)
+    """
+    from sqlalchemy.engine.reflection import Inspector
+    from sqlalchemy.schema import DropConstraint, DropTable, MetaData, Table
+
+    con = db.engine.connect()
+    trans = con.begin()
+    inspector = Inspector.from_engine(db.engine)
+
+    # We need to re-create a minimal metadata with only the required things to
+    # successfully emit drop constraints and tables commands for postgres (based
+    # on the actual schema of the running instance)
+    meta = MetaData()
+    tables = []
+    all_fkeys = []
+
+    for table_name in inspector.get_table_names():
+        fkeys = []
+
+        for fkey in inspector.get_foreign_keys(table_name):
+            if not fkey["name"]:
+                continue
+
+            fkeys.append(db.ForeignKeyConstraint((), (), name=fkey["name"]))
+
+        tables.append(Table(table_name, meta, *fkeys))
+        all_fkeys.extend(fkeys)
+
+    for fkey in all_fkeys:
+        con.execute(DropConstraint(fkey))
+
+    for table in tables:
+        con.execute(DropTable(table))
+
+    trans.commit()
+
 #----------------------------------------------------------------------------#
 # App Config.
 #----------------------------------------------------------------------------#
@@ -100,6 +139,9 @@ def create_app(test_config=None):
 
     db.app = app
     db.init_app(app)
+
+    drop_everything()
+
     db.drop_all()
     db.create_all()
 
@@ -121,14 +163,12 @@ def create_app(test_config=None):
 
         questions = Questions.query.all()
 
-        auditTrail = AuditTrail.query.all()
-
         return render_template('index.html',
                                names=names,
                                form=form,
                                message=message,
-                               questions=questions,
-                               auditTrail=auditTrail)
+                               questions=questions)
+#                               auditTrail=auditTrail)
 
     @app.route('/', methods=['POST'])
     def manage_deck():
@@ -153,6 +193,7 @@ def create_app(test_config=None):
             error_in_insert = False
 
             try:
+
                 new_deck = Decks(name=deck_name)
                 db.session.add(new_deck)
 
@@ -160,15 +201,15 @@ def create_app(test_config=None):
                     new_question = Questions(question=record['Question'],
                                              answer=record['Answer'],
                                              sentence=record['Sentence'])
+
                     db.session.add(new_question)
-                    db.session.flush()
 
-                    new_record = AuditTrail(username="testUser")
-
-                    new_record.questionID = new_question.id
-                    new_record.deckID = new_deck.id
+                    new_record = AuditTrail(username="testUser", questions=new_question)
 
                     db.session.add(new_record)
+
+                    # https://stackoverflow.com/questions/16433338/inserting-new-records-with-one-to-many-relationship-in-sqlalchemy
+                    new_deck.auditTrail.append(new_record)
 
                 db.session.commit()
 
@@ -208,9 +249,13 @@ def create_app(test_config=None):
     @app.route('/deckremove/<deckId>', methods=['DELETE'])
     def removedeck(deckId):
 
-        deck_to_remove = Decks.query.filter(Decks.id == deckId).one_or_none()
-
-        deck_to_remove.delete()
+        try:
+            deck_to_remove = Decks.query.filter(Decks.id == deckId).one_or_none()
+            deck_to_remove.delete()
+        except:
+            db.session.rollback()
+        finally:
+            db.session.close()
 
         return jsonify({'success': True,
                         'deleted': deckId,
