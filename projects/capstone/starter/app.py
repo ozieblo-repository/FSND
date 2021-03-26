@@ -168,7 +168,6 @@ def create_app(test_config=None):
                                form=form,
                                message=message,
                                questions=questions)
-#                               auditTrail=auditTrail)
 
     @app.route('/', methods=['POST'])
     def manage_deck():
@@ -198,15 +197,19 @@ def create_app(test_config=None):
                 db.session.add(new_deck)
 
                 for index, record in stanza_output.iterrows():
+
+                    new_record = AuditTrail(username="testUser")
+
+                    db.session.add(new_record)
+
                     new_question = Questions(question=record['Question'],
                                              answer=record['Answer'],
-                                             sentence=record['Sentence'])
+                                             sentence=record['Sentence'],
+                                             auditTrail=new_record)
 
                     db.session.add(new_question)
 
-                    new_record = AuditTrail(username="testUser", questions=new_question)
 
-                    db.session.add(new_record)
 
                     # https://stackoverflow.com/questions/16433338/inserting-new-records-with-one-to-many-relationship-in-sqlalchemy
                     new_deck.auditTrail.append(new_record)
@@ -244,7 +247,43 @@ def create_app(test_config=None):
     @app.route('/managedecks', methods=['GET'])
     def managedecks():
         form = SelectDeck()
-        return render_template('managedecks.html', form=form)
+        questions = Questions.query.all()
+        return render_template('managedecks.html',
+                               form=form,
+                               questions=questions)
+
+    @app.route("/updatesentence", methods=["POST"])
+    def updatesentence():
+
+        newsentence = request.form.get("newsentence")
+        oldsentence = request.form.get("oldsentence")
+        questions = Questions.query.filter_by(sentence=oldsentence).first()
+        questions.sentence = newsentence
+        db.session.commit()
+
+        return redirect("/managedecks")
+
+    @app.route("/updatequestion", methods=["POST"])
+    def updatequestion():
+
+        newquestion = request.form.get("newquestion")
+        oldquestion = request.form.get("oldquestion")
+        questions = Questions.query.filter_by(question=oldquestion).first()
+        questions.question = newquestion
+        db.session.commit()
+
+        return redirect("/managedecks")
+
+    @app.route("/updateanswer", methods=["POST"])
+    def updateanswer():
+
+        newanswer = request.form.get("newanswer")
+        oldanswer = request.form.get("oldanswer")
+        questions = Questions.query.filter_by(answer=oldanswer).first()
+        questions.answer = newanswer
+        db.session.commit()
+
+        return redirect("/managedecks")
 
     @app.route('/deckremove/<deckId>', methods=['DELETE'])
     def removedeck(deckId):

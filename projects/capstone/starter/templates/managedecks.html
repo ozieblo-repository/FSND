@@ -41,6 +41,32 @@ Capstone project
           }
       </script>
 
+      {% for question in questions %}
+
+        <p>{{question.sentence}}</p>
+        <p>{{question.question}}</p>
+        <p>{{question.answer}}</p>
+
+        <form method="POST" action="./updatesentence">
+          <input type="hidden" value="{{question.sentence}}" name="oldsentence">
+          <input type="text" value="{{question.sentence}}" name="newsentence">
+          <input type="submit" value="Update">
+        </form>
+
+        <form method="POST" action="./updatequestion">
+          <input type="hidden" value="{{question.question}}" name="oldquestion">
+          <input type="text" value="{{question.question}}" name="newquestion">
+          <input type="submit" value="Update">
+        </form>
+
+        <form method="POST" action="./updateanswer">
+          <input type="hidden" value="{{question.answer}}" name="oldanswer">
+          <input type="text" value="{{question.answer}}" name="newanswer">
+          <input type="submit" value="Update">
+        </form>
+
+      {% endfor %}
+
     </div>
   </div>
 </div>
