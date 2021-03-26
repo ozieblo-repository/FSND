@@ -157,16 +157,16 @@ def create_app(test_config=None):
 
     @app.route('/', methods=['GET'])
     def index():
-        names = ["dummyname1", "dummyname2"]
+        #names = ["dummyname1", "dummyname2"]
         form = MainFormNoLabel()
-        message = "dummymessage"
+        #message = "dummymessage"
 
         questions = Questions.query.all()
 
         return render_template('index.html',
-                               names=names,
+                               #names=names,
                                form=form,
-                               message=message,
+                               #message=message,
                                questions=questions)
 
     @app.route('/', methods=['POST'])
@@ -247,7 +247,7 @@ def create_app(test_config=None):
     @app.route('/managedecks', methods=['GET'])
     def managedecks():
         form = SelectDeck()
-        questions = Questions.query.all()
+        questions = Questions.query.order_by('id').all()
         return render_template('managedecks.html',
                                form=form,
                                questions=questions)

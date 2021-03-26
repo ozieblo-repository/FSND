@@ -63,9 +63,8 @@ Capstone project
           const btn = deleteBtns[i];
           btn.onclick = function(e) {
             const questionId = e.target.dataset['id'];
-            fetch('/questionremove/' + questionId, {
-              method: 'DELETE'
-            });
+            fetch('/questionremove/' + questionId, { method: 'DELETE' });
+            document.location.reload();
           }
         }
       </script>

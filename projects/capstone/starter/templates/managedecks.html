@@ -14,10 +14,12 @@ Capstone project
 
 {% block content %}
 
-<div class="/">
+<div class="container">
   <div class="row">
     <div class="col-md-10 col-lg-8 mx-lg-auto mx-md-auto">
-      <h1 class="pt-5 pb-2">Select deck</h1>
+
+      <h1 class="pt-5 pb-2">Manage decks</h1>
+
       <p class="lead"></p>
 
       <a href="/"><button>Take me to the main page</button></a>
@@ -38,6 +40,7 @@ Capstone project
           const questionId = e.target.dataset['id'];
           const deckId = document.getElementById("removedeck").value;
           fetch('/deckremove/' + deckId, { method: 'DELETE' });
+          document.location.reload();
           }
       </script>
 
