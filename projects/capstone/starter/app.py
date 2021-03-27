@@ -13,112 +13,18 @@ from flask import (Flask,
                    flash)
 from flask_cors import CORS
 from flask_bootstrap import Bootstrap
-from flask_wtf import FlaskForm
-import wtforms
-from wtforms.validators import DataRequired
+
+from .forms import (SelectDeck, MainFormNoLabel)
+
 from .models import (db,
                      Decks,
                      AuditTrail,
                      Questions)
 from .stanza_wrapper import stanza_wrapper
-from wtforms.ext.sqlalchemy.fields import QuerySelectField
 
-#----------------------------------------------------------------------------#
-# Forms.
-#----------------------------------------------------------------------------#
+from .drop_everything import drop_everything
 
-class CreateQuestions(FlaskForm):
-    #### https://wtforms.readthedocs.io/en/2.3.x/fields/
-    note = wtforms.TextAreaField('Copy below your note:', validators=[DataRequired()])
-    deck_name = wtforms.StringField('Put the deck name:', validators=[DataRequired()])
-
-class SubmitNote(FlaskForm):
-    submit = wtforms.SubmitField()
-
-def dropdown_query():
-    return Decks.query.order_by(Decks.id.desc())
-
-class SelectDeck(FlaskForm):
-    #### https://stackoverflow.com/questions/33832940/flask-how-to-populate-select-field-in-wtf-form-when-database-files-is-separate
-    pick_the_deck = QuerySelectField(query_factory=dropdown_query,
-                                     label="Decks:",
-                                     #allow_blank=True,
-                                     #blank_text="Select the deck",
-                                     id="removedeck" )
-
-#### https://stackoverflow.com/questions/49037015/is-posible-to-render-wtf-form-field-with-out-label
-class NoLabelMixin(object):
-    def __init__(self, *args, **kwargs):
-        super(NoLabelMixin, self).__init__(*args, **kwargs)
-        for field_name in self._fields:
-            field_property = getattr(self, field_name)
-            field_property.label = ""
-
-class MainForm(FlaskForm):
-    #### https://dev.to/sampart/combining-multiple-forms-in-flask-wtforms-but-validating-independently-cbm
-    create_questions = wtforms.FormField(CreateQuestions)
-    submit_note = wtforms.FormField(SubmitNote)
-
-class MainFormNoLabel(NoLabelMixin, MainForm):
-    pass
-
-# ----------------------------------------------------------------------------#
-# TextAreaField handler.
-# ----------------------------------------------------------------------------#
-
-def text_area_field_handler(text_area_field) -> list:
-    """
-    Read source TextAreaField and prepare it for the future wrangling.
-    It gives a list of single sentences.
-    """
-
-    try:
-        raw_sentences = text_area_field.strip().split(".")
-        sentences_list = list((i for i in raw_sentences if ("#" not in i) and i))
-        return sentences_list
-
-    except:
-        print("Error in text_area_field_handler()")
-        abort(500)
-
-def drop_everything():
-    """(On a live db) drops all foreign key constraints before dropping all tables.
-    Workaround for SQLAlchemy not doing DROP ## CASCADE for drop_all()
-    (https://github.com/pallets/flask-sqlalchemy/issues/722)
-    """
-    from sqlalchemy.engine.reflection import Inspector
-    from sqlalchemy.schema import DropConstraint, DropTable, MetaData, Table
-
-    con = db.engine.connect()
-    trans = con.begin()
-    inspector = Inspector.from_engine(db.engine)
-
-    # We need to re-create a minimal metadata with only the required things to
-    # successfully emit drop constraints and tables commands for postgres (based
-    # on the actual schema of the running instance)
-    meta = MetaData()
-    tables = []
-    all_fkeys = []
-
-    for table_name in inspector.get_table_names():
-        fkeys = []
-
-        for fkey in inspector.get_foreign_keys(table_name):
-            if not fkey["name"]:
-                continue
-
-            fkeys.append(db.ForeignKeyConstraint((), (), name=fkey["name"]))
-
-        tables.append(Table(table_name, meta, *fkeys))
-        all_fkeys.extend(fkeys)
-
-    for fkey in all_fkeys:
-        con.execute(DropConstraint(fkey))
-
-    for table in tables:
-        con.execute(DropTable(table))
-
-    trans.commit()
+from .text_area_field_handler import text_area_field_handler
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -129,9 +35,7 @@ def create_app(test_config=None):
     app = Flask(__name__)
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
     app.config['SECRET_KEY'] = os.urandom(32)
-
     DB_URL = "postgresql:///herok"
-
     app.config['SQLALCHEMY_DATABASE_URI'] = DB_URL
 
     # Flask-Bootstrap requires this line
@@ -158,9 +62,7 @@ def create_app(test_config=None):
     @app.route('/', methods=['GET'])
     def index():
         form = MainFormNoLabel()
-
         questions = Questions.query.all()
-
         return render_template('index.html',
                                form=form,
                                questions=questions)
@@ -205,8 +107,6 @@ def create_app(test_config=None):
 
                     db.session.add(new_question)
 
-
-
                     # https://stackoverflow.com/questions/16433338/inserting-new-records-with-one-to-many-relationship-in-sqlalchemy
                     new_deck.auditTrail.append(new_record)
 
@@ -227,7 +127,6 @@ def create_app(test_config=None):
 
     @app.route('/questionremove/<questionId>', methods=['DELETE'])
     def questionremove(questionId):
-
         try:
             question_to_remove = Questions.query.filter(Questions.id == questionId).one_or_none()
             question_to_remove.delete()
@@ -235,7 +134,6 @@ def create_app(test_config=None):
             db.session.rollback()
         finally:
             db.session.close()
-
         return jsonify({'success': True,
                         'deleted': questionId,
                         'message': "Question successfully deleted"})
@@ -250,7 +148,6 @@ def create_app(test_config=None):
 
     @app.route('/deckremove/<deckId>', methods=['DELETE'])
     def removedeck(deckId):
-
         try:
             deck_to_remove = Decks.query.filter(Decks.id == deckId).one_or_none()
             deck_to_remove.delete()
@@ -258,44 +155,35 @@ def create_app(test_config=None):
             db.session.rollback()
         finally:
             db.session.close()
-
         return redirect("/managedecks")
 
 # https://knowledge.udacity.com/questions/419323
     @app.route("/updatesentence", methods=["POST"])
     def updatesentence():
-
         questionId = request.form.get("oldsentenceid")
         newsentence = request.form.get("newsentence")
         questions = Questions.query.filter(Questions.id==questionId).first()
         questions.sentence = newsentence
         db.session.commit()
-
         return redirect("/managedecks")
 
     @app.route("/updatequestion", methods=["POST"])
     def updatequestion():
-
         questionId = request.form.get("oldquestionid")
         newquestion = request.form.get("newquestion")
         questions = Questions.query.filter(Questions.id==questionId).first()
         questions.question = newquestion
         db.session.commit()
-
         return redirect("/managedecks")
 
     @app.route("/updateanswer", methods=["POST"])
     def updateanswer():
-
         questionId = request.form.get("oldanswerid")
         newanswer = request.form.get("newanswer")
         questions = Questions.query.filter(Questions.id==questionId).first()
         questions.answer = newanswer
         db.session.commit()
-
         return redirect("/managedecks")
-
-
 
     #----------------------------------------------------------------------------#
     # Error handlers for expected errors.
