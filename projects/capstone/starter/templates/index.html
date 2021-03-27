@@ -55,7 +55,9 @@ Capstone project
         {% endfor %}
       </ul>
 
-      <a href="managedecks"><button>Take me to the manage deck page</button></a>
+      <input type="hidden" id="{{ deckId }}" name="deckId" value="">
+
+      <a href="managedecks"><button>Take me to the deck details</button></a>
 
       <script>
         const deleteBtns = document.querySelectorAll('.delete-button');

@@ -36,14 +36,14 @@ class SubmitNote(FlaskForm):
     submit = wtforms.SubmitField()
 
 def dropdown_query():
-    return Decks.query
+    return Decks.query.order_by(Decks.id.desc())
 
 class SelectDeck(FlaskForm):
     #### https://stackoverflow.com/questions/33832940/flask-how-to-populate-select-field-in-wtf-form-when-database-files-is-separate
     pick_the_deck = QuerySelectField(query_factory=dropdown_query,
                                      label="Decks:",
-                                     allow_blank=True,
-                                     blank_text="Select the deck",
+                                     #allow_blank=True,
+                                     #blank_text="Select the deck",
                                      id="removedeck" )
 
 #### https://stackoverflow.com/questions/49037015/is-posible-to-render-wtf-form-field-with-out-label
@@ -157,16 +157,12 @@ def create_app(test_config=None):
 
     @app.route('/', methods=['GET'])
     def index():
-        #names = ["dummyname1", "dummyname2"]
         form = MainFormNoLabel()
-        #message = "dummymessage"
 
         questions = Questions.query.all()
 
         return render_template('index.html',
-                               #names=names,
                                form=form,
-                               #message=message,
                                questions=questions)
 
     @app.route('/', methods=['POST'])
@@ -252,39 +248,6 @@ def create_app(test_config=None):
                                form=form,
                                questions=questions)
 
-    @app.route("/updatesentence", methods=["POST"])
-    def updatesentence():
-
-        newsentence = request.form.get("newsentence")
-        oldsentence = request.form.get("oldsentence")
-        questions = Questions.query.filter_by(sentence=oldsentence).first()
-        questions.sentence = newsentence
-        db.session.commit()
-
-        return redirect("/managedecks")
-
-    @app.route("/updatequestion", methods=["POST"])
-    def updatequestion():
-
-        newquestion = request.form.get("newquestion")
-        oldquestion = request.form.get("oldquestion")
-        questions = Questions.query.filter_by(question=oldquestion).first()
-        questions.question = newquestion
-        db.session.commit()
-
-        return redirect("/managedecks")
-
-    @app.route("/updateanswer", methods=["POST"])
-    def updateanswer():
-
-        newanswer = request.form.get("newanswer")
-        oldanswer = request.form.get("oldanswer")
-        questions = Questions.query.filter_by(answer=oldanswer).first()
-        questions.answer = newanswer
-        db.session.commit()
-
-        return redirect("/managedecks")
-
     @app.route('/deckremove/<deckId>', methods=['DELETE'])
     def removedeck(deckId):
 
@@ -296,9 +259,43 @@ def create_app(test_config=None):
         finally:
             db.session.close()
 
-        return jsonify({'success': True,
-                        'deleted': deckId,
-                        'message': "Deck successfully deleted"})
+        return redirect("/managedecks")
+
+# https://knowledge.udacity.com/questions/419323
+    @app.route("/updatesentence", methods=["POST"])
+    def updatesentence():
+
+        questionId = request.form.get("oldsentenceid")
+        newsentence = request.form.get("newsentence")
+        questions = Questions.query.filter(Questions.id==questionId).first()
+        questions.sentence = newsentence
+        db.session.commit()
+
+        return redirect("/managedecks")
+
+    @app.route("/updatequestion", methods=["POST"])
+    def updatequestion():
+
+        questionId = request.form.get("oldquestionid")
+        newquestion = request.form.get("newquestion")
+        questions = Questions.query.filter(Questions.id==questionId).first()
+        questions.question = newquestion
+        db.session.commit()
+
+        return redirect("/managedecks")
+
+    @app.route("/updateanswer", methods=["POST"])
+    def updateanswer():
+
+        questionId = request.form.get("oldanswerid")
+        newanswer = request.form.get("newanswer")
+        questions = Questions.query.filter(Questions.id==questionId).first()
+        questions.answer = newanswer
+        db.session.commit()
+
+        return redirect("/managedecks")
+
+
 
     #----------------------------------------------------------------------------#
     # Error handlers for expected errors.

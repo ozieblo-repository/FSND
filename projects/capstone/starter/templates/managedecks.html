@@ -5,6 +5,21 @@
 {{ super() }}
 	<style>
 		body { background: #e8f1f9; }
+
+		input[type=text]{
+                  display: table-cell;
+                  font-size:11px;
+                  padding:4px 2px;
+                  border:solid 1px #aacfe4;
+                  width:60%;
+                  margin:2px 0 20px 10px;
+              }
+
+        ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        }
 	</style>
 {% endblock %}
 
@@ -24,7 +39,9 @@ Capstone project
 
       <a href="/"><button>Take me to the main page</button></a>
 
-      <form action="decksettings" method="POST">
+      <p></p>
+
+      <form method="POST" align="center">
 
         {{ form.csrf_token }}
         {{ form.pick_the_deck }}
@@ -33,42 +50,46 @@ Capstone project
 
       </form>
 
+      <p></p>
+
       <script>
-        const deleteBtns = document.querySelectorAll('.delete-button');
-        const btn = deleteBtns[0];
+        const deleteBtn = document.querySelectorAll('.delete-button');
+        const btn = deleteBtn[0];
         btn.onclick = function(e) {
-          const questionId = e.target.dataset['id'];
           const deckId = document.getElementById("removedeck").value;
           fetch('/deckremove/' + deckId, { method: 'DELETE' });
           document.location.reload();
           }
       </script>
 
-      {% for question in questions %}
+      <ul>
+        {% for question in questions %}
+          <li>
+            <p>S: {{question.sentence}}</p>
+            <p>Q: {{question.question}}</p>
+            <p>A: {{question.answer}}</p>
 
-        <p>{{question.sentence}}</p>
-        <p>{{question.question}}</p>
-        <p>{{question.answer}}</p>
+            <form method="POST" action="./updatesentence">
+              <input type="hidden" value="{{question.id}}" name="oldsentenceid">
+              <input type="text" value="{{question.sentence}}" name="newsentence">
+              <input type="submit" value="Update sentence">
+            </form>
 
-        <form method="POST" action="./updatesentence">
-          <input type="hidden" value="{{question.sentence}}" name="oldsentence">
-          <input type="text" value="{{question.sentence}}" name="newsentence">
-          <input type="submit" value="Update">
-        </form>
+            <form method="POST" action="./updatequestion">
+              <input type="hidden" value="{{question.id}}" name="oldquestionid">
+              <input type="text" value="{{question.question}}" name="newquestion">
+              <input type="submit" value="Update question">
+            </form>
 
-        <form method="POST" action="./updatequestion">
-          <input type="hidden" value="{{question.question}}" name="oldquestion">
-          <input type="text" value="{{question.question}}" name="newquestion">
-          <input type="submit" value="Update">
-        </form>
+            <form method="POST" action="./updateanswer">
+              <input type="hidden" value="{{question.id}}" name="oldanswerid">
+              <input type="text" value="{{question.answer}}" name="newanswer">
+              <input type="submit" value="Update answer">
+            </form>
 
-        <form method="POST" action="./updateanswer">
-          <input type="hidden" value="{{question.answer}}" name="oldanswer">
-          <input type="text" value="{{question.answer}}" name="newanswer">
-          <input type="submit" value="Update">
-        </form>
-
-      {% endfor %}
+          </li>
+        {% endfor %}
+      </ul>
 
     </div>
   </div>
